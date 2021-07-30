@@ -278,6 +278,9 @@ namespace Mistaken.DevTools.Commands
                 case "cc_dfm":
                     CustomClass.CustomClasses.First(i => i.ClassSessionVarType == SessionVarType.CC_DEPUTY_FACILITY_MANAGER).Spawn(player);
                     break;
+                case "cc":
+                    CustomClass.CustomClasses.First(i => i.ClassName.ToLower() == string.Join(" ", args.Skip(1)).ToLower()).Spawn(player);
+                    break;
                 case "unit":
                     player.UnitName = args[1];
                     break;
