@@ -10,7 +10,7 @@ using Mistaken.API.Extensions;
 namespace Mistaken.DevTools
 {
     /// <inheritdoc/>
-    public class GlobalHandler : Module
+    internal class GlobalHandler : Module
     {
         /// <inheritdoc cref="Module.Module(Exiled.API.Interfaces.IPlugin{Exiled.API.Interfaces.IConfig})"/>
         public GlobalHandler(PluginHandler p)
