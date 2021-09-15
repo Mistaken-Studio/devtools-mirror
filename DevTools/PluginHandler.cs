@@ -23,15 +23,18 @@ namespace Mistaken.DevTools
         public override string Prefix => "MDEVTOOLS";
 
         /// <inheritdoc/>
-        public override PluginPriority Priority => PluginPriority.Medium;
+        public override PluginPriority Priority => PluginPriority.Higher - 1;
 
         /// <inheritdoc/>
-        public override Version RequiredExiledVersion => new Version(2, 11, 0);
+        public override Version RequiredExiledVersion => new Version(3, 0, 0, 84);
 
         /// <inheritdoc/>
         public override void OnEnabled()
         {
             Instance = this;
+
+            var harmony = new HarmonyLib.Harmony("com.mistaken.devtools");
+            harmony.PatchAll();
 
             new GlobalHandler(this);
 

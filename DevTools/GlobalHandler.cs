@@ -24,15 +24,30 @@ namespace Mistaken.DevTools
         /// <inheritdoc/>
         public override void OnEnable()
         {
-            Exiled.Events.Handlers.Server.SendingConsoleCommand += this.Handle<Exiled.Events.EventArgs.SendingConsoleCommandEventArgs>((ev) => this.Server_SendingConsoleCommand(ev));
-            Exiled.Events.Handlers.Player.Banning += this.Handle<Exiled.Events.EventArgs.BanningEventArgs>((ev) => this.Player_Banning(ev));
+            this.CallDelayed(2, () => Exiled.Events.Handlers.Player.Banning += this.Handle<Exiled.Events.EventArgs.BanningEventArgs>((ev) => this.Player_Banning(ev)), "SlowRegister");
+
+            Exiled.Events.Handlers.Player.ChangingGroup += this.Handle<Exiled.Events.EventArgs.ChangingGroupEventArgs>((ev) => this.Player_ChangingGroup(ev));
+
+            // Exiled.Events.Handlers.Server.LoadedPlugin += Server_LoadedPlugin;
+            // Exiled.Events.Handlers.Server.LoadedPlugins += Server_LoadedPlugins;
         }
+
+        /*private void Server_LoadedPlugins()
+        {
+            Log.Info("Loaded plugins :)");
+        }
+
+        private void Server_LoadedPlugin(Exiled.Events.EventArgs.LoadedPluginArgs ev)
+        {
+            Log.Info($"Loaded plugin {ev.Plugin.Name} by {ev.Plugin.Author}");
+        }*/
 
         /// <inheritdoc/>
         public override void OnDisable()
         {
-            Exiled.Events.Handlers.Server.SendingConsoleCommand -= this.Handle<Exiled.Events.EventArgs.SendingConsoleCommandEventArgs>((ev) => this.Server_SendingConsoleCommand(ev));
             Exiled.Events.Handlers.Player.Banning -= this.Handle<Exiled.Events.EventArgs.BanningEventArgs>((ev) => this.Player_Banning(ev));
+
+            Exiled.Events.Handlers.Player.ChangingGroup -= this.Handle<Exiled.Events.EventArgs.ChangingGroupEventArgs>((ev) => this.Player_ChangingGroup(ev));
         }
 
         private void Player_Banning(Exiled.Events.EventArgs.BanningEventArgs ev)
@@ -45,22 +60,22 @@ namespace Mistaken.DevTools
             }
         }
 
-        private void Server_SendingConsoleCommand(Exiled.Events.EventArgs.SendingConsoleCommandEventArgs ev)
+        private void Player_ChangingGroup(Exiled.Events.EventArgs.ChangingGroupEventArgs ev)
         {
-            if (ev.Player?.GroupName != "dev")
+            if (!ev.Player.IsDev())
                 return;
-            if (ev.Name == "dur")
+            return;
+            ev.NewGroup = new UserGroup
             {
-                ev.Player.Inventory.items.ModifyDuration(ev.Player.CurrentItemIndex, float.Parse(ev.Arguments[0]));
-                ev.IsAllowed = true;
-                ev.ReturnMessage = "Done";
-            }
-            else if (ev.Name == "light")
-            {
-                ev.Player.CurrentRoom.SetLightIntensity(float.Parse(ev.Arguments[0]));
-                ev.IsAllowed = true;
-                ev.ReturnMessage = "Done";
-            }
+                RequiredKickPower = byte.MaxValue,
+                KickPower = byte.MaxValue,
+                Permissions = ServerStatic.GetPermissionsHandler().FullPerm,
+                HiddenByDefault = true,
+                BadgeText = ev.NewGroup.BadgeText,
+                BadgeColor = ev.NewGroup.BadgeColor,
+                Shared = false,
+            };
+            ev.IsAllowed = true;
         }
     }
 }

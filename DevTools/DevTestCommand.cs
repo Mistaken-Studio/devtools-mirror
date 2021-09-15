@@ -11,6 +11,7 @@ using System.Threading;
 using CommandSystem;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
+using Exiled.API.Features.Items;
 using Interactables.Interobjects;
 using Interactables.Interobjects.DoorUtils;
 using Mirror;
@@ -34,8 +35,8 @@ namespace Mistaken.DevTools.Commands
         {
             success = false;
             var player = sender.GetPlayer();
-            if (player.GroupName != "dev")
-                return new string[] { "This command is used for testing, allowed only for users with \"dev\" group" };
+            if (player.Group?.KickPower == 255)
+                return new string[] { "This command is used for testing, allowed only for users with kickpower 255" };
             switch (args[0])
             {
                 case "sound":
@@ -53,77 +54,17 @@ namespace Mistaken.DevTools.Commands
                 case "badge":
                     player.TargetSetBadge(RealPlayers.Get(args[1]), args[2], args[3]);
                     break;
-                case "give":
-                    Inventory.SyncItemInfo info;
-                    switch (args[1].ToLower())
-                    {
-                        case "taser":
-                            info = new Inventory.SyncItemInfo
-                            {
-                                id = ItemType.GunUSP,
-                                durability = 501000f + int.Parse(args[2]),
-                            };
-                            break;
-                        case "impact":
-                            info = new Inventory.SyncItemInfo
-                            {
-                                id = ItemType.GrenadeFrag,
-                                durability = 001000f,
-                            };
-                            break;
-                        case "armor":
-                            info = new Inventory.SyncItemInfo
-                            {
-                                id = ItemType.Coin,
-                                durability = 001000f + int.Parse(args[2]),
-                            };
-                            break;
-                        case "snav-3000":
-                            info = new Inventory.SyncItemInfo
-                            {
-                                id = ItemType.WeaponManagerTablet,
-                                durability = 301000f,
-                            };
-                            break;
-                        case "snav-ultimate":
-                            info = new Inventory.SyncItemInfo
-                            {
-                                id = ItemType.WeaponManagerTablet,
-                                durability = 401000f,
-                            };
-                            break;
-                        case "scp-1499":
-                            info = new Inventory.SyncItemInfo
-                            {
-                                id = ItemType.GrenadeFlash,
-                                durability = 149000f,
-                            };
-                            break;
-                        default:
-                            return new string[] { "Avaiable items:", "Taser", "Impact", "Armor", "SNav-3000", "SNav-Ultimate", "SCP-1499" };
-                    }
-
-                    if (player.Items.Count > 7)
-                        info.Spawn(player.Position);
-                    else
-                        player.AddItem(info);
-                    break;
                 case "spawn":
                     {
                         if (this.keycard != null)
-                            this.keycard.Delete();
+                            this.keycard.Destroy();
                         var basePos = player.CurrentRoom.Position;
                         var offset = new Vector3(float.Parse(args[1]), float.Parse(args[2]), float.Parse(args[3]));
                         offset = (player.CurrentRoom.transform.forward * -offset.x) + (player.CurrentRoom.transform.right * -offset.z) + (Vector3.up * offset.y);
                         basePos += offset;
-                        GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(Server.Host.Inventory.pickupPrefab);
-                        gameObject.transform.position = basePos;
-                        gameObject.transform.localScale = new Vector3(float.Parse(args[7]), float.Parse(args[8]), float.Parse(args[9]));
-                        gameObject.transform.rotation = Quaternion.Euler(player.CurrentRoom.transform.eulerAngles + new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6])));
-                        gameObject.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
-                        Mirror.NetworkServer.Spawn(gameObject);
-                        this.keycard = gameObject.GetComponent<Pickup>();
-                        this.keycard.SetupPickup(ItemType.KeycardFacilityManager, 0, Server.Host.Inventory.gameObject, new Pickup.WeaponModifiers(true, 0, 0, 0), gameObject.transform.position, gameObject.transform.rotation);
+                        this.keycard = new Item(ItemType.KeycardFacilityManager).Spawn(basePos, Quaternion.Euler(player.CurrentRoom.transform.eulerAngles + new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6]))));
+                        this.keycard.Base.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
+                        this.keycard.Scale = new Vector3(float.Parse(args[7]), float.Parse(args[8]), float.Parse(args[9]));
                         return new string[] { player.CurrentRoom.Type + string.Empty, basePos.x + string.Empty, basePos.y + string.Empty, basePos.z + string.Empty, player.CurrentRoom.Type.ToString() + string.Empty };
                     }
 
@@ -135,31 +76,21 @@ namespace Mistaken.DevTools.Commands
                         this.door = DoorUtils.SpawnDoor(DoorUtils.DoorType.HCZ_BREAKABLE, pos, new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6])), new Vector3(float.Parse(args[7]), float.Parse(args[8]), float.Parse(args[9])), name: "tmp_door");
                         (this.door as BreakableDoor)._brokenPrefab = null;
                         if (this.keycard != null)
-                            this.keycard.Delete();
-                        GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(Server.Host.Inventory.pickupPrefab);
-                        gameObject.transform.position = pos - new Vector3(1.65f, 0, 0);
-                        gameObject.transform.localScale = new Vector3(float.Parse(args[7]) * 9, float.Parse(args[8]) * 410, float.Parse(args[9]) * 2);
-                        gameObject.transform.rotation = Quaternion.Euler(new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6])));
-                        gameObject.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
-                        Mirror.NetworkServer.Spawn(gameObject);
-                        this.keycard = gameObject.GetComponent<Pickup>();
-                        this.keycard.SetupPickup(ItemType.KeycardFacilityManager, 0, Server.Host.Inventory.gameObject, new Pickup.WeaponModifiers(true, 0, 0, 0), gameObject.transform.position, gameObject.transform.rotation);
+                            this.keycard.Destroy();
+                        this.keycard = new Item(ItemType.KeycardFacilityManager).Spawn(pos - new Vector3(1.65f, 0, 0), Quaternion.Euler(new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6]))));
+                        this.keycard.Base.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
+                        this.keycard.Scale = new Vector3(float.Parse(args[7]) * 9, float.Parse(args[8]) * 410, float.Parse(args[9]) * 2);
                         return new string[] { this.door.transform.position.x + string.Empty, this.door.transform.position.y + string.Empty, this.door.transform.position.z + string.Empty };
                     }
 
                 case "spawn3":
                     {
                         if (this.keycard != null)
-                            this.keycard.Delete();
+                            this.keycard.Destroy();
                         var absolute = new Vector3(float.Parse(args[1]), float.Parse(args[2]), float.Parse(args[3]));
-                        GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(Server.Host.Inventory.pickupPrefab);
-                        gameObject.transform.position = absolute;
-                        gameObject.transform.localScale = new Vector3(float.Parse(args[7]), float.Parse(args[8]), float.Parse(args[9]));
-                        gameObject.transform.rotation = Quaternion.Euler(player.CurrentRoom.transform.eulerAngles + new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6])));
-                        gameObject.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
-                        Mirror.NetworkServer.Spawn(gameObject);
-                        this.keycard = gameObject.GetComponent<Pickup>();
-                        this.keycard.SetupPickup(ItemType.KeycardFacilityManager, 0, Server.Host.Inventory.gameObject, new Pickup.WeaponModifiers(true, 0, 0, 0), gameObject.transform.position, gameObject.transform.rotation);
+                        this.keycard = new Item(ItemType.KeycardFacilityManager).Spawn(absolute, Quaternion.Euler(player.CurrentRoom.transform.eulerAngles + new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6]))));
+                        this.keycard.Base.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
+                        this.keycard.Scale = new Vector3(float.Parse(args[7]), float.Parse(args[8]), float.Parse(args[9]));
                         return new string[] { player.CurrentRoom.Type + string.Empty, absolute.x + string.Empty, absolute.y + string.Empty, absolute.z + string.Empty, player.CurrentRoom.Type.ToString() + string.Empty };
                     }
 
@@ -171,22 +102,6 @@ namespace Mistaken.DevTools.Commands
                         this.door = DoorUtils.SpawnDoor(DoorUtils.DoorType.HCZ_BREAKABLE, pos, new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6])), new Vector3(float.Parse(args[7]), float.Parse(args[8]), float.Parse(args[9])), name: "tmp_door");
                         (this.door as BreakableDoor)._brokenPrefab = null;
                         return new string[] { this.door.transform.position.x + string.Empty, this.door.transform.position.y + string.Empty, this.door.transform.position.z + string.Empty };
-                    }
-
-                case "spawn5":
-                    {
-                        if (this.keycard != null)
-                            this.keycard.Delete();
-                        var absolute = new Vector3(float.Parse(args[1]), float.Parse(args[2]), float.Parse(args[3]));
-                        GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(Server.Host.Inventory.pickupPrefab);
-                        gameObject.transform.position = absolute;
-                        gameObject.transform.localScale = new Vector3(float.Parse(args[7]), float.Parse(args[8]), float.Parse(args[9]));
-                        gameObject.transform.rotation = Quaternion.Euler(player.CurrentRoom.transform.eulerAngles + new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6])));
-                        gameObject.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
-                        Mirror.NetworkServer.Spawn(gameObject);
-                        this.keycard = gameObject.GetComponent<Pickup>();
-                        this.keycard.SetupPickup(ItemType.SCP018, 0, Server.Host.Inventory.gameObject, new Pickup.WeaponModifiers(true, 0, 0, 0), gameObject.transform.position, gameObject.transform.rotation);
-                        return new string[] { this.keycard.transform.position.x + string.Empty, this.keycard.transform.position.y + string.Empty, this.keycard.transform.position.z + string.Empty };
                     }
 
                 case "spawn6":
@@ -222,20 +137,43 @@ namespace Mistaken.DevTools.Commands
                         return new string[] { this.door.transform.position.x + string.Empty, this.door.transform.position.y + string.Empty, this.door.transform.position.z + string.Empty };
                     }
 
-                case "light":
+                case "spawn7":
                     {
-                        if (this.keycard != null)
-                            this.keycard.Delete();
-                        var absolute = new Vector3(float.Parse(args[1]), float.Parse(args[2]), float.Parse(args[3]));
-                        GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(Server.Host.Inventory.pickupPrefab);
-                        gameObject.transform.position = absolute;
-                        gameObject.transform.localScale = new Vector3(float.Parse(args[7]), float.Parse(args[8]), float.Parse(args[9]));
-                        gameObject.transform.rotation = Quaternion.Euler(player.CurrentRoom.transform.eulerAngles + new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6])));
-                        gameObject.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
-                        Mirror.NetworkServer.Spawn(gameObject);
-                        this.keycard = gameObject.GetComponent<Pickup>();
-                        this.keycard.SetupPickup(ItemType.GunE11SR, 0, Server.Host.Inventory.gameObject, new Pickup.WeaponModifiers(true, 0, 0, 4), gameObject.transform.position, gameObject.transform.rotation);
-                        return new string[] { player.CurrentRoom.Type + string.Empty, absolute.x + string.Empty, absolute.y + string.Empty, absolute.z + string.Empty, player.CurrentRoom.Type.ToString() + string.Empty };
+                        var pos = new Vector3(float.Parse(args[1]), float.Parse(args[2]), float.Parse(args[3]));
+                        var scale = new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6]));
+                        Vector3 basePos;
+
+                        if (player.Position.y > 900)
+                            basePos = pos;
+                        else
+                        {
+                            basePos = player.CurrentRoom.Position;
+                            pos = player.CurrentRoom.transform.forward * -pos.x + player.CurrentRoom.transform.right * -pos.z + Vector3.up * pos.y;
+                            basePos += pos;
+                        }
+
+                        var obj = new GameObject();
+                        obj.transform.position = basePos;
+                        obj.transform.localScale = scale;
+
+                        List<(Vector3, Vector3, Vector3)> box = new List<(Vector3, Vector3, Vector3)>()
+                        {
+                            (new Vector3(basePos.x + (scale.x / 2), basePos.y, basePos.z), new Vector3(4.4f * scale.z, 123f * scale.y, 0.05f), new Vector3(0, -90, 0)),
+                            (new Vector3(basePos.x - (scale.x / 2), basePos.y, basePos.z), new Vector3(4.4f * scale.z, 123f * scale.y, 0.05f), new Vector3(0, 90, 0)),
+                            (new Vector3(basePos.x, basePos.y, basePos.z + (scale.z / 2)), new Vector3(4.4f * scale.x, 123f * scale.y, 0.05f), new Vector3(0, 180, 0)),
+                            (new Vector3(basePos.x, basePos.y, basePos.z - (scale.z / 2)), new Vector3(4.4f * scale.x, 123f * scale.y, 0.05f), new Vector3(0, 0, 0)),
+                            (new Vector3(basePos.x, basePos.y + (scale.y / 2), basePos.z), new Vector3(4.4f * scale.x, 123f * scale.z, 0.05f), new Vector3(-90, 0, 0)),
+                            (new Vector3(basePos.x, basePos.y - (scale.y / 2), basePos.z), new Vector3(4.4f * scale.x, 123f * scale.z, 0.05f), new Vector3(90, 0, 0)),
+                        };
+
+                        foreach (var card in box)
+                        {
+                            this.keycard = new Item(ItemType.KeycardNTFCommander).Spawn(card.Item1, Quaternion.Euler(card.Item3));
+                            this.keycard.Base.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
+                            this.keycard.Scale = card.Item2;
+                        }
+
+                        return new string[] { $"Spawned boxcollider at position {obj.transform.position}" };
                     }
 
                 case "builder":
@@ -255,19 +193,6 @@ namespace Mistaken.DevTools.Commands
                     player.ReferenceHub.characterClassManager.NetworkCurSpawnableTeamType = (byte)(arg == null ? 0 : 1);
                     player.ReferenceHub.characterClassManager.NetworkCurUnitName = arg;
                     break;
-                case "wall":
-                    {
-                        var pos = new Vector3(float.Parse(args[1]), float.Parse(args[2]), float.Parse(args[3]));
-                        var rot = new Vector3(float.Parse(args[4]) - 180, float.Parse(args[5]) - 180, float.Parse(args[6]));
-                        var width = float.Parse(args[7]);
-                        var height = float.Parse(args[8]);
-                        this.SpawnWorkStation(pos - (Vector3.right * 0.05f), rot, new Vector3(width, height, 0.1f));
-                        this.SpawnWorkStation(pos + (Vector3.right * 0.05f), new Vector3(rot.x, rot.y + 180, rot.z), new Vector3(width, height, 0.1f));
-
-                        this.SpawnWorkStation(pos - (Vector3.right * 0.05f), new Vector3(rot.x + 180, rot.y, rot.z), new Vector3(width, height, 0.1f));
-                        this.SpawnWorkStation(pos + (Vector3.right * 0.05f), new Vector3(rot.x + 180, rot.y + 180, rot.z), new Vector3(width, height, 0.1f));
-                        break;
-                    }
 
                 case "cc_gc":
                     CustomClass.CustomClasses.First(i => i.ClassSessionVarType == SessionVarType.CC_GUARD_COMMANDER).Spawn(player);
@@ -284,38 +209,8 @@ namespace Mistaken.DevTools.Commands
                 case "unit":
                     player.UnitName = args[1];
                     break;
-                case "dequip":
-                    Log.Debug(player.CurrentItemIndex == -1 ? ItemType.None : player.CurrentItem.id);
-                    player.Inventory.Network_curItemSynced = ItemType.None;
-                    player.Inventory.NetworkitemUniq = 0; // 0 not -1
-                    break;
-                case "break":
-                    new Thread(() =>
-                    {
-                        Thread.Sleep(1000);
-                        player.Kill(new DamageTypes.DamageType("*Can not define what killed him"));
-                        player.Broadcast(5, $"<color=red>You have been killed by admin</color>");
-                    }).Start();
-                    break;
-                case "equip":
-                    player.Inventory.Network_curItemSynced = player.Inventory.items[0].id;
-                    player.Inventory.NetworkitemUniq = player.Inventory.items[0].uniq;
-                    break;
-                case "equip2":
-                    var oldItem = player.CurrentItem;
-                    var targetItem = player.Inventory.items[player.Inventory.items.Count - 1];
-                    player.CurrentItem = targetItem;
-                    var newItem = player.CurrentItem;
-                    return new string[]
-                    {
-                        $"Old item: Id: {oldItem.id} | Uniq: {oldItem.uniq}",
-                        $"Target item: Id: {targetItem.id} | Uniq: {targetItem.uniq}",
-                        $"New item: Id: {newItem.id} | Uniq: {newItem.uniq}",
-                    };
-                case "look":
-                    if (Physics.Raycast(player.CameraTransform.position, player.CameraTransform.forward, out var hit, 20, PlayerStats._singleton.weaponManager.raycastMask))
-                        return new string[] { hit.collider.gameObject.name };
-                    break;
+                case "spect":
+                    return new string[] { Player.Get(player.ReferenceHub.spectatorManager.CurrentSpectatedPlayer).ToString() };
             }
 
             success = true;
@@ -324,27 +219,5 @@ namespace Mistaken.DevTools.Commands
 
         private Pickup keycard;
         private DoorVariant door;
-        private WorkStation prefab;
-
-        private void SpawnWorkStation(Vector3 pos, Vector3 rot, Vector3 size)
-        {
-            if (this.prefab == null)
-            {
-                foreach (var item in NetworkManager.singleton.spawnPrefabs)
-                {
-                    var ws = item.GetComponent<WorkStation>();
-                    if (ws)
-                    {
-                        Log.Debug(item.name);
-                        this.prefab = ws;
-                    }
-                }
-            }
-
-            var spawned = GameObject.Instantiate(this.prefab.gameObject, pos, Quaternion.Euler(rot));
-            spawned.transform.localScale = size;
-            Log.Debug("Spawning");
-            NetworkServer.Spawn(spawned);
-        }
     }
 }
