@@ -35,8 +35,8 @@ namespace Mistaken.DevTools.Commands
         {
             success = false;
             var player = sender.GetPlayer();
-            if (player.Group?.KickPower == 255)
-                return new string[] { "This command is used for testing, allowed only for users with kickpower 255" };
+            // if (player.Group?.KickPower == 255)
+            //     return new string[] { "This command is used for testing, allowed only for users with kickpower 255" };
             switch (args[0])
             {
                 case "sound":
@@ -64,7 +64,10 @@ namespace Mistaken.DevTools.Commands
                         basePos += offset;
                         this.keycard = new Item(ItemType.KeycardFacilityManager).Spawn(basePos, Quaternion.Euler(player.CurrentRoom.transform.eulerAngles + new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6]))));
                         this.keycard.Base.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
-                        this.keycard.Scale = new Vector3(float.Parse(args[7]), float.Parse(args[8]), float.Parse(args[9]));
+                        this.keycard.Base.gameObject.SetActive(false);
+                        this.keycard.Base.gameObject.transform.localScale = new Vector3(float.Parse(args[7]), float.Parse(args[8]), float.Parse(args[9]));
+                        this.keycard.Rotation = Quaternion.Euler(player.CurrentRoom.transform.eulerAngles + new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6])));
+                        this.keycard.Base.PhysicsModule.DestroyModule();
                         return new string[] { player.CurrentRoom.Type + string.Empty, basePos.x + string.Empty, basePos.y + string.Empty, basePos.z + string.Empty, player.CurrentRoom.Type.ToString() + string.Empty };
                     }
 
@@ -211,6 +214,13 @@ namespace Mistaken.DevTools.Commands
                     break;
                 case "spect":
                     return new string[] { Player.Get(player.ReferenceHub.spectatorManager.CurrentSpectatedPlayer).ToString() };
+                case "list":
+                    return NetworkManager.singleton.spawnPrefabs.Select(x =>
+                    {
+                        var tmp = GameObject.Instantiate(x, player.Position, Quaternion.identity);
+                        NetworkServer.Spawn(tmp);
+                        return x.name;
+                    }).ToArray();
             }
 
             success = true;
