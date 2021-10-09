@@ -19,7 +19,6 @@ using Mistaken.API;
 using Mistaken.API.Commands;
 using Mistaken.API.Extensions;
 using Mistaken.API.GUI;
-using Mistaken.CustomClasses;
 using UnityEngine;
 
 namespace Mistaken.DevTools.Commands
@@ -198,18 +197,6 @@ namespace Mistaken.DevTools.Commands
                     player.ReferenceHub.characterClassManager.NetworkCurUnitName = arg;
                     break;
 
-                case "cc_gc":
-                    CustomClass.CustomClasses.First(i => i.ClassSessionVarType == SessionVarType.CC_GUARD_COMMANDER).Spawn(player);
-                    break;
-                case "cc_zm":
-                    CustomClass.CustomClasses.First(i => i.ClassSessionVarType == SessionVarType.CC_ZONE_MANAGER).Spawn(player);
-                    break;
-                case "cc_dfm":
-                    CustomClass.CustomClasses.First(i => i.ClassSessionVarType == SessionVarType.CC_DEPUTY_FACILITY_MANAGER).Spawn(player);
-                    break;
-                case "cc":
-                    CustomClass.CustomClasses.First(i => i.ClassName.ToLower() == string.Join(" ", args.Skip(1)).ToLower()).Spawn(player);
-                    break;
                 case "unit":
                     player.UnitName = args[1];
                     break;
