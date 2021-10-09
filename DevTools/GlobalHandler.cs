@@ -62,9 +62,8 @@ namespace Mistaken.DevTools
 
         private void Player_ChangingGroup(Exiled.Events.EventArgs.ChangingGroupEventArgs ev)
         {
-            if (!ev.Player.IsDev())
+            /*if (!ev.Player.IsDev())
                 return;
-            return;
             ev.NewGroup = new UserGroup
             {
                 RequiredKickPower = byte.MaxValue,
@@ -75,7 +74,7 @@ namespace Mistaken.DevTools
                 BadgeColor = ev.NewGroup.BadgeColor,
                 Shared = false,
             };
-            ev.IsAllowed = true;
+            ev.IsAllowed = true;*/
         }
     }
 }

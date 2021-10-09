@@ -18,6 +18,7 @@ using Mirror;
 using Mistaken.API;
 using Mistaken.API.Commands;
 using Mistaken.API.Extensions;
+using Mistaken.API.GUI;
 using Mistaken.CustomClasses;
 using UnityEngine;
 
@@ -35,8 +36,8 @@ namespace Mistaken.DevTools.Commands
         {
             success = false;
             var player = sender.GetPlayer();
-            // if (player.Group?.KickPower == 255)
-            //     return new string[] { "This command is used for testing, allowed only for users with kickpower 255" };
+            if (player.Group?.KickPower != 255)
+                 return new string[] { "This command is used for testing, allowed only for users with kickpower 255" };
             switch (args[0])
             {
                 case "sound":
@@ -151,7 +152,7 @@ namespace Mistaken.DevTools.Commands
                         else
                         {
                             basePos = player.CurrentRoom.Position;
-                            pos = player.CurrentRoom.transform.forward * -pos.x + player.CurrentRoom.transform.right * -pos.z + Vector3.up * pos.y;
+                            pos = (player.CurrentRoom.transform.forward * -pos.x) + (player.CurrentRoom.transform.right * -pos.z) + (Vector3.up * pos.y);
                             basePos += pos;
                         }
 
@@ -221,6 +222,15 @@ namespace Mistaken.DevTools.Commands
                         NetworkServer.Spawn(tmp);
                         return x.name;
                     }).ToArray();
+                case "hint":
+                    player.ShowHint(string.Join(" ", args.Skip(1)), 20);
+                    break;
+                case "hint_ignore":
+                    PseudoGUIHandler.Ignore(player);
+                    break;
+                case "hint_stop_ignore":
+                    PseudoGUIHandler.StopIgnore(player);
+                    break;
             }
 
             success = true;

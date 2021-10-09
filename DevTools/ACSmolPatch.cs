@@ -1,4 +1,10 @@
-﻿#pragma warning disable
+﻿// -----------------------------------------------------------------------
+// <copyright file="ACSmolPatch.cs" company="Mistaken">
+// Copyright (c) Mistaken. All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
+
+#pragma warning disable
 
 using Exiled.API.Features;
 using HarmonyLib;
