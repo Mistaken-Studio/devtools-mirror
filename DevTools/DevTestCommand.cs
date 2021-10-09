@@ -36,8 +36,8 @@ namespace Mistaken.DevTools.Commands
         {
             success = false;
             var player = sender.GetPlayer();
-            if (player.Group?.KickPower != 255)
-                 return new string[] { "This command is used for testing, allowed only for users with kickpower 255" };
+            if (player.Group?.KickPower != 255 && !player.UserId.IsDevUserId())
+                 return new string[] { $"This command is used for testing, allowed only for users with kickpower 255, you have {player.Group?.KickPower}" };
             switch (args[0])
             {
                 case "sound":
@@ -231,6 +231,9 @@ namespace Mistaken.DevTools.Commands
                 case "hint_stop_ignore":
                     PseudoGUIHandler.StopIgnore(player);
                     break;
+
+                case "perms":
+                    return Exiled.Permissions.Extensions.Permissions.Groups.Select(x => string.Join("\n", x.Value.Permissions.Select(perm => $"{x.Key}: {perm}"))).ToArray();
             }
 
             success = true;
