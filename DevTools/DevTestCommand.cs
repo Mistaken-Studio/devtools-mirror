@@ -212,6 +212,9 @@ namespace Mistaken.DevTools.Commands
                 case "hint":
                     player.ShowHint(string.Join(" ", args.Skip(1)), 20);
                     break;
+                case "hint_test":
+                    player.SetGUI("test", PseudoGUIPosition.MIDDLE, string.Join(" ", args.Skip(1)));
+                    break;
                 case "hint_ignore":
                     PseudoGUIHandler.Ignore(player);
                     break;
@@ -221,6 +224,13 @@ namespace Mistaken.DevTools.Commands
 
                 case "perms":
                     return Exiled.Permissions.Extensions.Permissions.Groups.Select(x => string.Join("\n", x.Value.Permissions.Select(perm => $"{x.Key}: {perm}"))).ToArray();
+
+                case "my_perms":
+                    return Exiled.Permissions.Extensions.Permissions.Groups.Where(x => x.Key == player.GroupName).First().Value.CombinedPermissions.ToArray();
+                case "my_perms2":
+                    return Exiled.Permissions.Extensions.Permissions.Groups.Where(x => x.Key == player.GroupName).First().Value.Permissions.ToArray();
+                case "my_perms3":
+                    return Exiled.Permissions.Extensions.Permissions.Groups.Where(x => x.Key == player.GroupName).First().Value.Inheritance.ToArray();
             }
 
             success = true;
