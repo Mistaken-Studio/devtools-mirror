@@ -25,7 +25,7 @@ namespace Mistaken.DevTools
         [Description("Auto Update Settings")]
         public System.Collections.Generic.Dictionary<string, string> AutoUpdateConfig { get; set; } = new System.Collections.Generic.Dictionary<string, string>
         {
-            { "Url", "https://git.mistaken.pl/api/v4/projects/25" },
+            { "Url", "https://git.mistaken.pl/api/v4/projects/23" },
             { "Token", string.Empty },
             { "Type", "GITLAB" },
             { "VerbouseOutput", "false" },
