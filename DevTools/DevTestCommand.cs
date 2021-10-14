@@ -20,6 +20,8 @@ using Mistaken.API.Commands;
 using Mistaken.API.Extensions;
 using Mistaken.API.GUI;
 using UnityEngine;
+using Exiled.CustomRoles;
+using Exiled.CustomRoles.API.Features;
 
 namespace Mistaken.DevTools.Commands
 {
@@ -231,6 +233,9 @@ namespace Mistaken.DevTools.Commands
                     return Exiled.Permissions.Extensions.Permissions.Groups.Where(x => x.Key == player.GroupName).First().Value.Permissions.ToArray();
                 case "my_perms3":
                     return Exiled.Permissions.Extensions.Permissions.Groups.Where(x => x.Key == player.GroupName).First().Value.Inheritance.ToArray();
+                case "cr":
+                    CustomRole.Get(args[1]).AddRole(Player.Get(args[2]));
+                    break;
             }
 
             success = true;
