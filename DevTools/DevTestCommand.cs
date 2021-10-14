@@ -234,7 +234,7 @@ namespace Mistaken.DevTools.Commands
                 case "my_perms3":
                     return Exiled.Permissions.Extensions.Permissions.Groups.Where(x => x.Key == player.GroupName).First().Value.Inheritance.ToArray();
                 case "cr":
-                    CustomRole.Get(args[1]).AddRole(Player.Get(args[2]));
+                    CustomRole.Get(int.Parse(args[1])).AddRole(RealPlayers.Get(args[2]));
                     break;
             }
 
