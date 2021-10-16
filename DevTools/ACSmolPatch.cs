@@ -7,19 +7,30 @@
 #pragma warning disable
 
 using Exiled.API.Features;
+using Exiled.API.Features.Items;
 using Exiled.Events.EventArgs;
 using HarmonyLib;
+using InventorySystem.Items;
+using InventorySystem.Items.Armor;
+using InventorySystem.Items.Firearms.Ammo;
+using InventorySystem.Items.Flashlight;
+using InventorySystem.Items.Keycards;
+using InventorySystem.Items.MicroHID;
 using InventorySystem.Items.Radio;
+using InventorySystem.Items.ThrowableProjectiles;
+using InventorySystem.Items.Usables;
 using Mistaken.API;
 using Mistaken.API.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace Mistaken.DevTools
 {
+    #region Hide
     /*[HarmonyPatch(typeof(PlayerMovementSync), "ForcePosition", typeof(Vector3), typeof(string), typeof(bool), typeof(bool), typeof(bool))]
     static class ACSmolPatch
     {
@@ -169,4 +180,107 @@ namespace Mistaken.DevTools
             yield break;
         }
     }*/
+    #endregion
+    
+    [HarmonyPatch(typeof(Item), nameof(Item.Get))]
+    internal static class Itempatch
+    {
+        private static FieldInfo tmp = typeof(Item).GetField("BaseToItem", BindingFlags.NonPublic | BindingFlags.Static);
+        private static Dictionary<ItemBase, Item> BaseToItem => (Dictionary<ItemBase, Item>)tmp.GetValue(null);
+        public static bool Prefix(ItemBase itemBase, ref Item __result)
+        {
+            if (itemBase == null)
+            {
+                Log.SendRaw($"[{DateTime.Now:HH:mm:ss.fff}] [Item.Debug] ItemBase is null", ConsoleColor.Cyan);
+                __result = null;
+                return false;
+            }
+            Item result;
+            if (BaseToItem.TryGetValue(itemBase, out result))
+            {
+                Log.SendRaw($"[{DateTime.Now:HH:mm:ss.fff}] [Item.Debug] ItemBase ({result.Type}) is {result.GetType().FullName}", ConsoleColor.Cyan);
+                __result = result;
+                return false;
+            }
+            InventorySystem.Items.Firearms.Firearm firearm = itemBase as InventorySystem.Items.Firearms.Firearm;
+            if (firearm != null)
+            {
+                Log.SendRaw($"[{DateTime.Now:HH:mm:ss.fff}] [Item.Debug] ItemBase ({result.Type}) will be Firearm", ConsoleColor.Cyan);
+                __result = new Exiled.API.Features.Items.Firearm(firearm);
+                return false;
+            }
+            KeycardItem keycardItem = itemBase as KeycardItem;
+            if (keycardItem != null)
+            {
+                Log.SendRaw($"[{DateTime.Now:HH:mm:ss.fff}] [Item.Debug] ItemBase ({result.Type}) will be Keycard", ConsoleColor.Cyan);
+                __result = new Exiled.API.Features.Items.Keycard(keycardItem);
+                return false;
+            }
+            UsableItem usableItem = itemBase as UsableItem;
+            if (usableItem != null)
+            {
+                Log.SendRaw($"[{DateTime.Now:HH:mm:ss.fff}] [Item.Debug] ItemBase ({result.Type}) will be Usable", ConsoleColor.Cyan);
+                __result = new Exiled.API.Features.Items.Usable(usableItem);
+                return false;
+            }
+            RadioItem radioItem = itemBase as RadioItem;
+            if (radioItem != null)
+            {
+                Log.SendRaw($"[{DateTime.Now:HH:mm:ss.fff}] [Item.Debug] ItemBase ({result.Type}) will be Radio", ConsoleColor.Cyan);
+                __result = new Exiled.API.Features.Items.Radio(radioItem);
+                return false;
+            }
+            MicroHIDItem microHIDItem = itemBase as MicroHIDItem;
+            if (microHIDItem != null)
+            {
+                Log.SendRaw($"[{DateTime.Now:HH:mm:ss.fff}] [Item.Debug] ItemBase ({result.Type}) will be MicroHid", ConsoleColor.Cyan);
+                __result = new Exiled.API.Features.Items.MicroHid(microHIDItem);
+                return false;
+            }
+            BodyArmor bodyArmor = itemBase as BodyArmor;
+            if (bodyArmor != null)
+            {
+                Log.SendRaw($"[{DateTime.Now:HH:mm:ss.fff}] [Item.Debug] ItemBase ({result.Type}) will be Armor", ConsoleColor.Cyan);
+                __result = new Exiled.API.Features.Items.Armor(bodyArmor);
+                return false;
+            }
+            AmmoItem ammoItem = itemBase as AmmoItem;
+            if (ammoItem != null)
+            {
+                Log.SendRaw($"[{DateTime.Now:HH:mm:ss.fff}] [Item.Debug] ItemBase ({result.Type}) will be Ammo", ConsoleColor.Cyan);
+                __result = new Exiled.API.Features.Items.Ammo(ammoItem);
+                return false;
+            }
+            FlashlightItem flashlightItem = itemBase as FlashlightItem;
+            if (flashlightItem != null)
+            {
+                Log.SendRaw($"[{DateTime.Now:HH:mm:ss.fff}] [Item.Debug] ItemBase ({result.Type}) will be Flashlight", ConsoleColor.Cyan);
+                __result = new Exiled.API.Features.Items.Flashlight(flashlightItem);
+                return false;
+            }
+            ThrowableItem throwableItem = itemBase as ThrowableItem;
+            if (throwableItem == null)
+            {
+                Log.SendRaw($"[{DateTime.Now:HH:mm:ss.fff}] [Item.Debug] ItemBase ({result.Type}) will be Item", ConsoleColor.Cyan);
+                __result = new Exiled.API.Features.Items.Item(itemBase);
+                return false;
+            }
+            ThrownProjectile projectile = throwableItem.Projectile;
+            if (projectile is FlashbangGrenade)
+            {
+                Log.SendRaw($"[{DateTime.Now:HH:mm:ss.fff}] [Item.Debug] ItemBase ({result.Type}) will be FlashGrenade", ConsoleColor.Cyan);
+                __result = new Exiled.API.Features.Items.FlashGrenade(throwableItem);
+                return false;
+            }
+            if (!(projectile is ExplosionGrenade))
+            {
+                Log.SendRaw($"[{DateTime.Now:HH:mm:ss.fff}] [Item.Debug] ItemBase ({result.Type}) will be Throwable", ConsoleColor.Cyan);
+                __result = new Exiled.API.Features.Items.Throwable(throwableItem);
+                return false;
+            }
+            Log.SendRaw($"[{DateTime.Now:HH:mm:ss.fff}] [Item.Debug] ItemBase ({result.Type}) will be ExplosiveGrenade", ConsoleColor.Cyan);
+            __result = new Exiled.API.Features.Items.ExplosiveGrenade(throwableItem);
+            return false;
+        }
+    }
 }
