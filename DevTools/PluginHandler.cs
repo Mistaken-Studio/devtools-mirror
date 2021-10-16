@@ -7,6 +7,7 @@
 using System;
 using Exiled.API.Enums;
 using Exiled.API.Features;
+using InventorySystem.Items.Radio;
 
 namespace Mistaken.DevTools
 {
@@ -33,6 +34,8 @@ namespace Mistaken.DevTools
         {
             Instance = this;
 
+            // Exiled.Events.Events.DisabledPatchesHashSet.Add(typeof(RadioItem).GetMethod(nameof(RadioItem.Update), System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static));
+            // Exiled.Events.Events.Instance.ReloadDisabledPatches();
             var harmony = new HarmonyLib.Harmony("com.mistaken.devtools");
             harmony.PatchAll();
 

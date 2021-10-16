@@ -7,10 +7,14 @@
 #pragma warning disable
 
 using Exiled.API.Features;
+using Exiled.Events.EventArgs;
 using HarmonyLib;
+using InventorySystem.Items.Radio;
 using Mistaken.API;
 using Mistaken.API.Extensions;
 using System;
+using System.Collections.Generic;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
@@ -117,6 +121,52 @@ namespace Mistaken.DevTools
             if (code != "F.3")
                 return true;
             return false;
+        }
+    }*/
+
+
+    /*[HarmonyPatch(typeof(RadioItem), nameof(RadioItem.Update))]
+    static class MemePatch
+    {
+        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            List<CodeInstruction> newInstructions = new List<CodeInstruction>();
+            newInstructions.AddRange(instructions);
+            int num = -4;
+            int index = newInstructions.FindIndex((CodeInstruction instruction) => instruction.opcode == OpCodes.Ldloc_0) + num;
+            Label label = newInstructions[newInstructions.Count - 1].labels[0];
+            LocalBuilder localBuilder = generator.DeclareLocal(typeof(UsingRadioBatteryEventArgs));
+            newInstructions.InsertRange(index, new CodeInstruction[]
+            {
+                new CodeInstruction(OpCodes.Ldarg_0, null),
+                new CodeInstruction(OpCodes.Ldarg_0, null),
+                new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(RadioItem), "Owner")),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Exiled.API.Features.Player), "Get", new Type[]
+                {
+                    typeof(ReferenceHub)
+                }, null)),
+                new CodeInstruction(OpCodes.Ldloc_0, null),
+                new CodeInstruction(OpCodes.Ldc_I4_1, null),
+                new CodeInstruction(OpCodes.Newobj, AccessTools.GetDeclaredConstructors(typeof(UsingRadioBatteryEventArgs), null)[0]),
+                new CodeInstruction(OpCodes.Dup, null),
+                new CodeInstruction(OpCodes.Dup, null),
+                new CodeInstruction(OpCodes.Stloc_S, localBuilder.LocalIndex),
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Exiled.Events.Handlers.Player), "OnUsingRadioBattery", null, null)),
+                new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(UsingRadioBatteryEventArgs), "IsAllowed")),
+                new CodeInstruction(OpCodes.Brfalse_S, label),
+                new CodeInstruction(OpCodes.Ldloc_S, localBuilder.LocalIndex),
+                new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(UsingRadioBatteryEventArgs), "Drain")),
+                new CodeInstruction(OpCodes.Stloc_0, null),
+                new CodeInstruction(OpCodes.Newobj, AccessTools.GetDeclaredConstructors(typeof(Exception), null)[0]),
+                new CodeInstruction(OpCodes.Throw, null),
+            });
+            int num2;
+            for (int z = 0; z < newInstructions.Count; z = num2 + 1)
+            {
+                yield return newInstructions[z];
+                num2 = z;
+            }
+            yield break;
         }
     }*/
 }

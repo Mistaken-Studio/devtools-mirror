@@ -4,8 +4,14 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Linq;
+using Exiled.API.Features;
+using MEC;
+using Mistaken.API;
 using Mistaken.API.Diagnostics;
 using Mistaken.API.Extensions;
+using UnityEngine;
 
 namespace Mistaken.DevTools
 {
@@ -27,9 +33,32 @@ namespace Mistaken.DevTools
             this.CallDelayed(2, () => Exiled.Events.Handlers.Player.Banning += this.Handle<Exiled.Events.EventArgs.BanningEventArgs>((ev) => this.Player_Banning(ev)), "SlowRegister");
 
             Exiled.Events.Handlers.Player.ChangingGroup += this.Handle<Exiled.Events.EventArgs.ChangingGroupEventArgs>((ev) => this.Player_ChangingGroup(ev));
-
+            Exiled.Events.Handlers.Server.RoundStarted += Server_RoundStarted;
             // Exiled.Events.Handlers.Server.LoadedPlugin += Server_LoadedPlugin;
             // Exiled.Events.Handlers.Server.LoadedPlugins += Server_LoadedPlugins;
+        }
+
+        private void Server_RoundStarted()
+        {
+            Timing.RunCoroutine(Loop());
+        }
+
+        private IEnumerator<float> Loop()
+        {
+            yield return Timing.WaitForSeconds(1);
+            while (Round.IsStarted)
+            {
+                foreach (var item in RealPlayers.List)
+                {
+                    if (item.IsAlive && item.Position.y < -5000)
+                    {
+                        item.Position = Map.Rooms.First(x => x.Type == Exiled.API.Enums.RoomType.Lcz914).Position + Vector3.up;
+                        item.IsInvisible = false;
+                    }
+                }
+
+                yield return Timing.WaitForSeconds(1);
+            }
         }
 
         /*private void Server_LoadedPlugins()
