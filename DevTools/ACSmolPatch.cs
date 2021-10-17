@@ -182,7 +182,7 @@ namespace Mistaken.DevTools
     }*/
     #endregion
     
-    [HarmonyPatch(typeof(Item), nameof(Item.Get))]
+    /*[HarmonyPatch(typeof(Item), nameof(Item.Get))]
     internal static class Itempatch
     {
         private static FieldInfo tmp = typeof(Item).GetField("BaseToItem", BindingFlags.NonPublic | BindingFlags.Static);
@@ -323,5 +323,5 @@ namespace Mistaken.DevTools
                     throw new ArgumentOutOfRangeException("(2) Incorrect item type: " + itemBase.ItemTypeId);
             }
         }
-    }
+    }*/
 }
