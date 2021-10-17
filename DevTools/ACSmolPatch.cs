@@ -288,4 +288,40 @@ namespace Mistaken.DevTools
             return false;
         }
     }
+
+    [HarmonyPatch(typeof(Item), MethodType.Constructor, typeof(ItemType))]
+    internal static class ItemConstructirPatch
+    {
+        public static bool Prefix(ItemType type)
+        {
+            switch(type)
+            {
+                case ItemType.Flashlight:
+                case ItemType.Coin:
+                    return true;
+                default:
+                    Log.SendRaw("[ItemConstructor] DIE :) | " + type, ConsoleColor.Red);
+                    throw new ArgumentOutOfRangeException("Incorrect item type: " + type);
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(Item), MethodType.Constructor, typeof(ItemBase))]
+    internal static class ItemConstructirPatch2
+    {
+        public static bool Prefix(Item __instance, ItemBase itemBase)
+        {
+            if (__instance.GetType() != typeof(Item))
+                return true;
+            switch (itemBase.ItemTypeId)
+            {
+                case ItemType.Flashlight:
+                case ItemType.Coin:
+                    return true;
+                default:
+                    Log.SendRaw("[ItemConstructor2] DIE :) | " + itemBase.ItemTypeId, ConsoleColor.Red);
+                    throw new ArgumentOutOfRangeException("(2) Incorrect item type: " + itemBase.ItemTypeId);
+            }
+        }
+    }
 }
