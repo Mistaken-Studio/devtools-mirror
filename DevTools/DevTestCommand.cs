@@ -7,11 +7,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using CommandSystem;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
 using Exiled.API.Features.Items;
+using Exiled.CustomRoles.API.Features;
 using Interactables.Interobjects;
 using Interactables.Interobjects.DoorUtils;
 using Mirror;
@@ -20,8 +20,6 @@ using Mistaken.API.Commands;
 using Mistaken.API.Extensions;
 using Mistaken.API.GUI;
 using UnityEngine;
-using Exiled.CustomRoles;
-using Exiled.CustomRoles.API.Features;
 
 namespace Mistaken.DevTools.Commands
 {
@@ -235,6 +233,10 @@ namespace Mistaken.DevTools.Commands
                     return Exiled.Permissions.Extensions.Permissions.Groups.Where(x => x.Key == player.GroupName).First().Value.Inheritance.ToArray();
                 case "cr":
                     CustomRole.Get(int.Parse(args[1])).AddRole(RealPlayers.Get(args[2]));
+                    break;
+
+                case "spc":
+                    player.SpectatedPlayer = Player.Get(args[1]);
                     break;
             }
 
