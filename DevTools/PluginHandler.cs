@@ -27,7 +27,7 @@ namespace Mistaken.DevTools
         public override PluginPriority Priority => PluginPriority.Higher - 1;
 
         /// <inheritdoc/>
-        public override Version RequiredExiledVersion => new Version(3, 0, 3);
+        public override Version RequiredExiledVersion => new Version(4, 0, 0);
 
         /// <inheritdoc/>
         public override void OnEnabled()
