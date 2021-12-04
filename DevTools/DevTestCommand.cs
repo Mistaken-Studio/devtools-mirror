@@ -85,9 +85,15 @@ namespace Mistaken.DevTools.Commands
                         {
                             if (this.primitiveObjectsList[player].Count != 0)
                             {
-                                NetworkServer.Destroy(this.primitiveObjectsList[player].Last()._spawnedPrimitve);
+                                NetworkServer.Destroy(this.primitiveObjectsList[player].Last().gameObject);
                                 this.primitiveObjectsList[player].Remove(this.primitiveObjectsList[player].Last());
+                                foreach (var primObj in this.primitiveObjectsList[player])
+                                    player.SendConsoleMessage($"{primObj.netId}", "gray");
+
+                                return new string[] { "Object removed successfully!" };
                             }
+
+                            return new string[] { "Failed to remove object!" };
                         }
 
                         var pos = player.CurrentRoom.Position;
@@ -107,6 +113,8 @@ namespace Mistaken.DevTools.Commands
                         obj.transform.rotation = Quaternion.Euler(player.CurrentRoom.transform.eulerAngles + new Vector3(float.Parse(args[6]), float.Parse(args[7]), float.Parse(args[8])));
                         obj.transform.localScale = new Vector3(float.Parse(args[9]), float.Parse(args[10]), float.Parse(args[11]));
                         obj.NetworkMaterialColor = color;
+                        if (!this.primitiveObjectsList.ContainsKey(player))
+                            this.primitiveObjectsList.Add(player, new List<PrimitiveObjectToy>());
                         this.primitiveObjectsList[player].Add(obj);
 
                         return new string[] { $"Spawned {type} at {pos} with color {color}. Use \".test spawn2 remove\" to remove last spawned object." };
@@ -118,7 +126,7 @@ namespace Mistaken.DevTools.Commands
                         {
                             if (this.absolutePrimitiveObjectsList[player].Count != 0)
                             {
-                                NetworkServer.Destroy(this.absolutePrimitiveObjectsList[player].Last()._spawnedPrimitve);
+                                NetworkServer.Destroy(this.absolutePrimitiveObjectsList[player].Last().gameObject);
                                 this.absolutePrimitiveObjectsList[player].Remove(this.absolutePrimitiveObjectsList[player].Last());
                             }
                         }
@@ -137,6 +145,8 @@ namespace Mistaken.DevTools.Commands
                         obj.transform.rotation = Quaternion.Euler(new Vector3(float.Parse(args[6]), float.Parse(args[7]), float.Parse(args[8])));
                         obj.transform.localScale = new Vector3(float.Parse(args[9]), float.Parse(args[10]), float.Parse(args[11]));
                         obj.NetworkMaterialColor = color;
+                        if (!this.absolutePrimitiveObjectsList.ContainsKey(player))
+                            this.absolutePrimitiveObjectsList.Add(player, new List<PrimitiveObjectToy>());
                         this.absolutePrimitiveObjectsList[player].Add(obj);
 
                         return new string[] { $"Spawned {type} at {pos} with color {color}. Use \".test spawn3 remove\" to remove last spawned object." };
