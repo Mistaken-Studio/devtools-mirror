@@ -128,7 +128,13 @@ namespace Mistaken.DevTools.Commands
                             {
                                 NetworkServer.Destroy(this.absolutePrimitiveObjectsList[player].Last().gameObject);
                                 this.absolutePrimitiveObjectsList[player].Remove(this.absolutePrimitiveObjectsList[player].Last());
+                                foreach (var primObj in this.absolutePrimitiveObjectsList[player])
+                                    player.SendConsoleMessage($"{primObj.netId}", "gray");
+
+                                return new string[] { "Object removed successfully!" };
                             }
+
+                            return new string[] { "Failed to remove object!" };
                         }
 
                         var obj = GlobalHandler.GetPrimitiveObject(player);
@@ -193,6 +199,52 @@ namespace Mistaken.DevTools.Commands
                         }
 
                         return new string[] { this.door.transform.position.x + string.Empty, this.door.transform.position.y + string.Empty, this.door.transform.position.z + string.Empty };
+                    }
+
+                case "attp":
+                    {
+                        if (args[1].ToLower() == "remove")
+                        {
+                            var rematt = RealPlayers.Get(args[2]);
+                            if (rematt is null)
+                                rematt = player;
+                            if (this.playerAttachedObjects[rematt].Count != 0)
+                            {
+                                NetworkServer.Destroy(this.playerAttachedObjects[rematt].Last().gameObject);
+                                this.playerAttachedObjects[rematt].Remove(this.playerAttachedObjects[rematt].Last());
+                                foreach (var primObj in this.absolutePrimitiveObjectsList[rematt])
+                                    player.SendConsoleMessage($"{primObj.netId}", "gray");
+
+                                return new string[] { "Object removed successfully!" };
+                            }
+
+                            return new string[] { "Failed to remove object!" };
+                        }
+
+                        var obj = GlobalHandler.GetPrimitiveObject(player);
+                        var player2 = RealPlayers.Get(args[1]);
+                        if (player2 is null)
+                            player2 = player;
+                        if (!System.Enum.TryParse<PrimitiveType>(args[2], true, out var type))
+                            type = PrimitiveType.Sphere;
+                        if (!ColorUtility.TryParseHtmlString(args[3], out var color))
+                            color = Color.gray;
+                        var pos = player.Position;
+                        var offset = new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6]));
+                        offset = (player.CurrentRoom.transform.forward * -offset.x) + (player.CurrentRoom.transform.right * -offset.z) + (Vector3.up * offset.y);
+                        pos += offset;
+
+                        obj.NetworkPrimitiveType = type;
+                        obj.transform.position = pos;
+                        obj.transform.rotation = Quaternion.Euler(new Vector3(float.Parse(args[7]), float.Parse(args[8]), float.Parse(args[9])));
+                        obj.transform.localScale = new Vector3(float.Parse(args[10]), float.Parse(args[11]), float.Parse(args[12])) * -1f;
+                        obj.NetworkMaterialColor = color;
+                        obj.transform.parent = player.GameObject.transform;
+                        if (!this.playerAttachedObjects.ContainsKey(player))
+                            this.playerAttachedObjects.Add(player, new List<PrimitiveObjectToy>());
+                        this.playerAttachedObjects[player].Add(obj);
+
+                        return new string[] { $"Attached {type} to {player.Nickname} with offset {pos} and color {color}. Use \".test attp remove [player id]\" to remove last attached object." };
                     }
 
                 case "builder":
@@ -263,6 +315,7 @@ namespace Mistaken.DevTools.Commands
         private readonly Dictionary<Player, PrimitiveObjectToy> primitiveObjects = new Dictionary<Player, PrimitiveObjectToy>();
         private readonly Dictionary<Player, List<PrimitiveObjectToy>> absolutePrimitiveObjectsList = new Dictionary<Player, List<PrimitiveObjectToy>>();
         private readonly Dictionary<Player, List<PrimitiveObjectToy>> primitiveObjectsList = new Dictionary<Player, List<PrimitiveObjectToy>>();
+        private readonly Dictionary<Player, List<PrimitiveObjectToy>> playerAttachedObjects = new Dictionary<Player, List<PrimitiveObjectToy>>();
         private DoorVariant door;
     }
 }
