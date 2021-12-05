@@ -5,8 +5,11 @@
 // -----------------------------------------------------------------------
 
 using Exiled.API.Features;
+using Mirror;
 using Mistaken.API.Diagnostics;
 using Mistaken.API.Extensions;
+using RoundRestarting;
+using UnityEngine;
 
 namespace Mistaken.DevTools
 {
@@ -38,11 +41,41 @@ namespace Mistaken.DevTools
             // Exiled.Events.Handlers.Server.RoundEnded -= this.Server_RoundEnded;
         }
 
+        internal static AdminToys.PrimitiveObjectToy GetPrimitiveObject(Player admin)
+        {
+            foreach (var obj in NetworkClient.prefabs.Values)
+            {
+                if (obj.TryGetComponent<AdminToys.PrimitiveObjectToy>(out var adminToyBase))
+                {
+                    AdminToys.PrimitiveObjectToy primitiveObject = UnityEngine.Object.Instantiate<AdminToys.PrimitiveObjectToy>(adminToyBase);
+                    primitiveObject.OnSpawned(admin.ReferenceHub, new string[0].Segment(0));
+                    return primitiveObject;
+                }
+            }
+
+            return null;
+        }
+
+        internal static AdminToys.LightSourceToy GetLightSourceObject(Player admin)
+        {
+            foreach (var obj in NetworkClient.prefabs.Values)
+            {
+                if (obj.TryGetComponent<AdminToys.LightSourceToy>(out var adminToyBase))
+                {
+                    AdminToys.LightSourceToy lightSourceObj = UnityEngine.Object.Instantiate<AdminToys.LightSourceToy>(adminToyBase);
+                    lightSourceObj.OnSpawned(admin.ReferenceHub, new string[0].Segment(0));
+                    return lightSourceObj;
+                }
+            }
+
+            return null;
+        }
+
         private void Server_RoundEnded(Exiled.Events.EventArgs.RoundEndedEventArgs ev)
         {
             this.CallDelayed(5, () =>
             {
-                PlayerStats._singleton.RpcRoundrestart(20, true);
+                Mirror.NetworkServer.SendToAll<RoundRestartMessage>(new RoundRestartMessage(RoundRestartType.FullRestart, 20f, 0, true));
                 this.CallDelayed(.1f, () => Server.Restart());
             });
         }

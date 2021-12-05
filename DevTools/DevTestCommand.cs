@@ -1,4 +1,4 @@
-﻿// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 // <copyright file="DevTestCommand.cs" company="Mistaken">
 // Copyright (c) Mistaken. All rights reserved.
 // </copyright>
@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using AdminToys;
 using CommandSystem;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
@@ -54,47 +55,107 @@ namespace Mistaken.DevTools.Commands
                 case "badge":
                     player.TargetSetBadge(RealPlayers.Get(args[1]), args[2], args[3]);
                     break;
-                case "spawn":
+                case "spawn1":
                     {
-                        if (this.keycard != null)
-                            this.keycard.Destroy();
+                        if (!this.primitiveObjects.ContainsKey(player))
+                            this.primitiveObjects[player] = GlobalHandler.GetPrimitiveObject(player);
+
                         var basePos = player.CurrentRoom.Position;
-                        var offset = new Vector3(float.Parse(args[1]), float.Parse(args[2]), float.Parse(args[3]));
+                        var offset = new Vector3(float.Parse(args[3]), float.Parse(args[4]), float.Parse(args[5]));
                         offset = (player.CurrentRoom.transform.forward * -offset.x) + (player.CurrentRoom.transform.right * -offset.z) + (Vector3.up * offset.y);
                         basePos += offset;
-                        this.keycard = new Item(ItemType.KeycardFacilityManager).Spawn(basePos, Quaternion.Euler(player.CurrentRoom.transform.eulerAngles + new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6]))));
-                        this.keycard.Base.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
-                        this.keycard.Base.gameObject.SetActive(false);
-                        this.keycard.Base.gameObject.transform.localScale = new Vector3(float.Parse(args[7]), float.Parse(args[8]), float.Parse(args[9]));
-                        this.keycard.Rotation = Quaternion.Euler(player.CurrentRoom.transform.eulerAngles + new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6])));
-                        this.keycard.Base.PhysicsModule.DestroyModule();
+
+                        if (!System.Enum.TryParse<PrimitiveType>(args[1], true, out var type))
+                            type = PrimitiveType.Sphere;
+                        if (!ColorUtility.TryParseHtmlString(args[2], out var color))
+                            color = Color.gray;
+
+                        this.primitiveObjects[player].NetworkPrimitiveType = type;
+                        this.primitiveObjects[player].transform.position = basePos;
+                        this.primitiveObjects[player].transform.rotation = Quaternion.Euler(player.CurrentRoom.transform.eulerAngles + new Vector3(float.Parse(args[6]), float.Parse(args[7]), float.Parse(args[8])));
+                        this.primitiveObjects[player].transform.localScale = new Vector3(float.Parse(args[9]), float.Parse(args[10]), float.Parse(args[11]));
+                        this.primitiveObjects[player].NetworkMaterialColor = color;
+
                         return new string[] { player.CurrentRoom.Type + string.Empty, basePos.x + string.Empty, basePos.y + string.Empty, basePos.z + string.Empty, player.CurrentRoom.Type.ToString() + string.Empty };
                     }
 
                 case "spawn2":
                     {
-                        if (this.door != null)
-                            NetworkServer.Destroy(this.door.gameObject);
-                        var pos = new Vector3(float.Parse(args[1]), float.Parse(args[2]), float.Parse(args[3]));
-                        this.door = DoorUtils.SpawnDoor(DoorUtils.DoorType.HCZ_BREAKABLE, pos, new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6])), new Vector3(float.Parse(args[7]), float.Parse(args[8]), float.Parse(args[9])), name: "tmp_door");
-                        (this.door as BreakableDoor)._brokenPrefab = null;
-                        if (this.keycard != null)
-                            this.keycard.Destroy();
-                        this.keycard = new Item(ItemType.KeycardFacilityManager).Spawn(pos - new Vector3(1.65f, 0, 0), Quaternion.Euler(new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6]))));
-                        this.keycard.Base.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
-                        this.keycard.Scale = new Vector3(float.Parse(args[7]) * 9, float.Parse(args[8]) * 410, float.Parse(args[9]) * 2);
-                        return new string[] { this.door.transform.position.x + string.Empty, this.door.transform.position.y + string.Empty, this.door.transform.position.z + string.Empty };
+                        if (args[1].ToLower() == "remove")
+                        {
+                            if (this.primitiveObjectsList[player].Count != 0)
+                            {
+                                NetworkServer.Destroy(this.primitiveObjectsList[player].Last().gameObject);
+                                this.primitiveObjectsList[player].Remove(this.primitiveObjectsList[player].Last());
+                                foreach (var primObj in this.primitiveObjectsList[player])
+                                    player.SendConsoleMessage($"{primObj.netId}", "gray");
+
+                                return new string[] { "Object removed successfully!" };
+                            }
+
+                            return new string[] { "Failed to remove object!" };
+                        }
+
+                        var pos = player.CurrentRoom.Position;
+                        var offset = new Vector3(float.Parse(args[3]), float.Parse(args[4]), float.Parse(args[5]));
+                        offset = (player.CurrentRoom.transform.forward * -offset.x) + (player.CurrentRoom.transform.right * -offset.z) + (Vector3.up * offset.y);
+                        pos += offset;
+
+                        var obj = GlobalHandler.GetPrimitiveObject(player);
+
+                        if (!System.Enum.TryParse<PrimitiveType>(args[1], true, out var type))
+                            type = PrimitiveType.Sphere;
+                        if (!ColorUtility.TryParseHtmlString(args[2], out var color))
+                            color = Color.gray;
+
+                        obj.NetworkPrimitiveType = type;
+                        obj.transform.position = pos;
+                        obj.transform.rotation = Quaternion.Euler(player.CurrentRoom.transform.eulerAngles + new Vector3(float.Parse(args[6]), float.Parse(args[7]), float.Parse(args[8])));
+                        obj.transform.localScale = new Vector3(float.Parse(args[9]), float.Parse(args[10]), float.Parse(args[11]));
+                        obj.NetworkMaterialColor = color;
+                        if (!this.primitiveObjectsList.ContainsKey(player))
+                            this.primitiveObjectsList.Add(player, new List<PrimitiveObjectToy>());
+                        this.primitiveObjectsList[player].Add(obj);
+
+                        return new string[] { $"Spawned {type} at {pos} with color {color}. Use \".test spawn2 remove\" to remove last spawned object." };
                     }
 
                 case "spawn3":
                     {
-                        if (this.keycard != null)
-                            this.keycard.Destroy();
-                        var absolute = new Vector3(float.Parse(args[1]), float.Parse(args[2]), float.Parse(args[3]));
-                        this.keycard = new Item(ItemType.KeycardFacilityManager).Spawn(absolute, Quaternion.Euler(player.CurrentRoom.transform.eulerAngles + new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6]))));
-                        this.keycard.Base.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
-                        this.keycard.Scale = new Vector3(float.Parse(args[7]), float.Parse(args[8]), float.Parse(args[9]));
-                        return new string[] { player.CurrentRoom.Type + string.Empty, absolute.x + string.Empty, absolute.y + string.Empty, absolute.z + string.Empty, player.CurrentRoom.Type.ToString() + string.Empty };
+                        if (args[1].ToLower() == "remove")
+                        {
+                            if (this.absolutePrimitiveObjectsList[player].Count != 0)
+                            {
+                                NetworkServer.Destroy(this.absolutePrimitiveObjectsList[player].Last().gameObject);
+                                this.absolutePrimitiveObjectsList[player].Remove(this.absolutePrimitiveObjectsList[player].Last());
+                                foreach (var primObj in this.absolutePrimitiveObjectsList[player])
+                                    player.SendConsoleMessage($"{primObj.netId}", "gray");
+
+                                return new string[] { "Object removed successfully!" };
+                            }
+
+                            return new string[] { "Failed to remove object!" };
+                        }
+
+                        var obj = GlobalHandler.GetPrimitiveObject(player);
+
+                        if (!System.Enum.TryParse<PrimitiveType>(args[1], true, out var type))
+                            type = PrimitiveType.Sphere;
+                        if (!ColorUtility.TryParseHtmlString(args[2], out var color))
+                            color = Color.gray;
+
+                        var pos = new Vector3(float.Parse(args[3]), float.Parse(args[4]), float.Parse(args[5]));
+
+                        obj.NetworkPrimitiveType = type;
+                        obj.transform.position = pos;
+                        obj.transform.rotation = Quaternion.Euler(new Vector3(float.Parse(args[6]), float.Parse(args[7]), float.Parse(args[8])));
+                        obj.transform.localScale = new Vector3(float.Parse(args[9]), float.Parse(args[10]), float.Parse(args[11]));
+                        obj.NetworkMaterialColor = color;
+                        if (!this.absolutePrimitiveObjectsList.ContainsKey(player))
+                            this.absolutePrimitiveObjectsList.Add(player, new List<PrimitiveObjectToy>());
+                        this.absolutePrimitiveObjectsList[player].Add(obj);
+
+                        return new string[] { $"Spawned {type} at {pos} with color {color}. Use \".test spawn3 remove\" to remove last spawned object." };
                     }
 
                 case "spawn4":
@@ -107,7 +168,7 @@ namespace Mistaken.DevTools.Commands
                         return new string[] { this.door.transform.position.x + string.Empty, this.door.transform.position.y + string.Empty, this.door.transform.position.z + string.Empty };
                     }
 
-                case "spawn6":
+                case "spawn5":
                     {
                         if (this.door != null)
                             NetworkServer.Destroy(this.door.gameObject);
@@ -142,41 +203,63 @@ namespace Mistaken.DevTools.Commands
 
                 case "spawn7":
                     {
+                        if (this.door != null)
+                            NetworkServer.Destroy(this.door.gameObject);
                         var pos = new Vector3(float.Parse(args[1]), float.Parse(args[2]), float.Parse(args[3]));
-                        var scale = new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6]));
-                        Vector3 basePos;
+                        var rot = new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6]));
+                        var scale = new Vector3(float.Parse(args[7]), float.Parse(args[8]), float.Parse(args[9]));
+                        var basePos = player.CurrentRoom.Position;
+                        pos = (player.CurrentRoom.transform.forward * -pos.x) + (player.CurrentRoom.transform.right * -pos.z) + (Vector3.up * pos.y);
+                        basePos += pos;
+                        this.door = DoorUtils.SpawnDoor(DoorUtils.DoorType.HCZ_BREAKABLE, basePos, rot, scale, name: "tmp_door");
+                        (this.door as BreakableDoor)._brokenPrefab = null;
+                        return new string[] { this.door.transform.position.x + string.Empty, this.door.transform.position.y + string.Empty, this.door.transform.position.z + string.Empty };
+                    }
 
-                        if (player.Position.y > 900)
-                            basePos = pos;
-                        else
+                case "attp":
+                    {
+                        if (args[1].ToLower() == "remove")
                         {
-                            basePos = player.CurrentRoom.Position;
-                            pos = (player.CurrentRoom.transform.forward * -pos.x) + (player.CurrentRoom.transform.right * -pos.z) + (Vector3.up * pos.y);
-                            basePos += pos;
+                            var rematt = RealPlayers.Get(args[2]);
+                            if (rematt is null)
+                                rematt = player;
+                            if (this.playerAttachedObjects[rematt].Count != 0)
+                            {
+                                NetworkServer.Destroy(this.playerAttachedObjects[rematt].Last().gameObject);
+                                this.playerAttachedObjects[rematt].Remove(this.playerAttachedObjects[rematt].Last());
+                                foreach (var primObj in this.absolutePrimitiveObjectsList[rematt])
+                                    player.SendConsoleMessage($"{primObj.netId}", "gray");
+
+                                return new string[] { "Object removed successfully!" };
+                            }
+
+                            return new string[] { "Failed to remove object!" };
                         }
 
-                        var obj = new GameObject();
-                        obj.transform.position = basePos;
-                        obj.transform.localScale = scale;
+                        var obj = GlobalHandler.GetPrimitiveObject(player);
+                        var player2 = RealPlayers.Get(args[1]);
+                        if (player2 is null)
+                            player2 = player;
+                        if (!System.Enum.TryParse<PrimitiveType>(args[2], true, out var type))
+                            type = PrimitiveType.Sphere;
+                        if (!ColorUtility.TryParseHtmlString(args[3], out var color))
+                            color = Color.gray;
+                        var pos = player.Position;
+                        var offset = new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6]));
+                        offset = (player.CurrentRoom.transform.forward * -offset.x) + (player.CurrentRoom.transform.right * -offset.z) + (Vector3.up * offset.y);
+                        pos += offset;
 
-                        List<(Vector3, Vector3, Vector3)> box = new List<(Vector3, Vector3, Vector3)>()
-                        {
-                            (new Vector3(basePos.x + (scale.x / 2), basePos.y, basePos.z), new Vector3(4.4f * scale.z, 123f * scale.y, 0.05f), new Vector3(0, -90, 0)),
-                            (new Vector3(basePos.x - (scale.x / 2), basePos.y, basePos.z), new Vector3(4.4f * scale.z, 123f * scale.y, 0.05f), new Vector3(0, 90, 0)),
-                            (new Vector3(basePos.x, basePos.y, basePos.z + (scale.z / 2)), new Vector3(4.4f * scale.x, 123f * scale.y, 0.05f), new Vector3(0, 180, 0)),
-                            (new Vector3(basePos.x, basePos.y, basePos.z - (scale.z / 2)), new Vector3(4.4f * scale.x, 123f * scale.y, 0.05f), new Vector3(0, 0, 0)),
-                            (new Vector3(basePos.x, basePos.y + (scale.y / 2), basePos.z), new Vector3(4.4f * scale.x, 123f * scale.z, 0.05f), new Vector3(-90, 0, 0)),
-                            (new Vector3(basePos.x, basePos.y - (scale.y / 2), basePos.z), new Vector3(4.4f * scale.x, 123f * scale.z, 0.05f), new Vector3(90, 0, 0)),
-                        };
+                        obj.NetworkPrimitiveType = type;
+                        obj.transform.position = pos;
+                        obj.transform.rotation = Quaternion.Euler(new Vector3(float.Parse(args[7]), float.Parse(args[8]), float.Parse(args[9])));
+                        obj.transform.localScale = new Vector3(float.Parse(args[10]), float.Parse(args[11]), float.Parse(args[12])) * -1f;
+                        obj.NetworkMaterialColor = color;
+                        obj.transform.parent = player.GameObject.transform;
+                        if (!this.playerAttachedObjects.ContainsKey(player))
+                            this.playerAttachedObjects.Add(player, new List<PrimitiveObjectToy>());
+                        this.playerAttachedObjects[player].Add(obj);
 
-                        foreach (var card in box)
-                        {
-                            this.keycard = new Item(ItemType.KeycardNTFCommander).Spawn(card.Item1, Quaternion.Euler(card.Item3));
-                            this.keycard.Base.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
-                            this.keycard.Scale = card.Item2;
-                        }
-
-                        return new string[] { $"Spawned boxcollider at position {obj.transform.position}" };
+                        return new string[] { $"Attached {type} to {player.Nickname} with offset {pos} and color {color}. Use \".test attp remove [player id]\" to remove last attached object." };
                     }
 
                 case "builder":
@@ -244,7 +327,10 @@ namespace Mistaken.DevTools.Commands
             return new string[] { "HMM" };
         }
 
-        private Pickup keycard;
+        private readonly Dictionary<Player, PrimitiveObjectToy> primitiveObjects = new Dictionary<Player, PrimitiveObjectToy>();
+        private readonly Dictionary<Player, List<PrimitiveObjectToy>> absolutePrimitiveObjectsList = new Dictionary<Player, List<PrimitiveObjectToy>>();
+        private readonly Dictionary<Player, List<PrimitiveObjectToy>> primitiveObjectsList = new Dictionary<Player, List<PrimitiveObjectToy>>();
+        private readonly Dictionary<Player, List<PrimitiveObjectToy>> playerAttachedObjects = new Dictionary<Player, List<PrimitiveObjectToy>>();
         private DoorVariant door;
     }
 }

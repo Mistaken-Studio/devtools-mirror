@@ -7,7 +7,6 @@
 using System;
 using Exiled.API.Enums;
 using Exiled.API.Features;
-using InventorySystem.Items.Radio;
 
 namespace Mistaken.DevTools
 {
@@ -27,7 +26,7 @@ namespace Mistaken.DevTools
         public override PluginPriority Priority => PluginPriority.Higher - 1;
 
         /// <inheritdoc/>
-        public override Version RequiredExiledVersion => new Version(3, 0, 3);
+        public override Version RequiredExiledVersion => new Version(4, 1, 2);
 
         /// <inheritdoc/>
         public override void OnEnabled()
