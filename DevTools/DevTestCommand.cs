@@ -1,4 +1,4 @@
-﻿// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 // <copyright file="DevTestCommand.cs" company="Mistaken">
 // Copyright (c) Mistaken. All rights reserved.
 // </copyright>
@@ -198,6 +198,21 @@ namespace Mistaken.DevTools.Commands
                                 new object[] { this.door.netIdentity, player.Connection, });
                         }
 
+                        return new string[] { this.door.transform.position.x + string.Empty, this.door.transform.position.y + string.Empty, this.door.transform.position.z + string.Empty };
+                    }
+
+                case "spawn7":
+                    {
+                        if (this.door != null)
+                            NetworkServer.Destroy(this.door.gameObject);
+                        var pos = new Vector3(float.Parse(args[1]), float.Parse(args[2]), float.Parse(args[3]));
+                        var rot = new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6]));
+                        var scale = new Vector3(float.Parse(args[7]), float.Parse(args[8]), float.Parse(args[9]));
+                        var basePos = player.CurrentRoom.Position;
+                        pos = (player.CurrentRoom.transform.forward * -pos.x) + (player.CurrentRoom.transform.right * -pos.z) + (Vector3.up * pos.y);
+                        basePos += pos;
+                        this.door = DoorUtils.SpawnDoor(DoorUtils.DoorType.HCZ_BREAKABLE, basePos, rot, scale, name: "tmp_door");
+                        (this.door as BreakableDoor)._brokenPrefab = null;
                         return new string[] { this.door.transform.position.x + string.Empty, this.door.transform.position.y + string.Empty, this.door.transform.position.z + string.Empty };
                     }
 
