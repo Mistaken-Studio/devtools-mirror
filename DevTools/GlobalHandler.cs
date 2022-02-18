@@ -89,8 +89,8 @@ namespace Mistaken.DevTools
 
             this.Send(new Webhook(PluginHandler.Instance.Config.WebhookLink)
                 .AddMessage(msg => msg
-                    .WithAvatar(PluginHandler.Instance.Config.WebhookAvatar)
-                    .WithUsername(PluginHandler.Instance.Config.WebhookUsername)
+                    .WithAvatar(string.IsNullOrWhiteSpace(PluginHandler.Instance.Config.WebhookAvatar) ? null : PluginHandler.Instance.Config.WebhookAvatar)
+                    .WithUsername(string.IsNullOrWhiteSpace(PluginHandler.Instance.Config.WebhookUsername) ? null : PluginHandler.Instance.Config.WebhookUsername)
                     .WithContent(string.Concat(
                             $"[❗] ",
                             $"[`{Server.Port}`] ",
