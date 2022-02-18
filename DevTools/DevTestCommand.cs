@@ -15,6 +15,7 @@ using Exiled.API.Features.Items;
 using Exiled.CustomRoles.API.Features;
 using Interactables.Interobjects;
 using Interactables.Interobjects.DoorUtils;
+using InventorySystem.Items.Firearms.Attachments;
 using Mirror;
 using Mistaken.API;
 using Mistaken.API.Commands;
@@ -38,7 +39,7 @@ namespace Mistaken.DevTools.Commands
             var player = sender.GetPlayer();
             if (player.Group?.KickPower != 255 && !player.UserId.IsDevUserId())
                  return new string[] { $"This command is used for testing, allowed only for users with kickpower 255, you have {player.Group?.KickPower}" };
-            switch (args[0])
+            switch (args[0].ToLower())
             {
                 case "sound":
                     GameObject.FindObjectOfType<AmbientSoundPlayer>().RpcPlaySound(int.Parse(args[1]));
@@ -55,28 +56,169 @@ namespace Mistaken.DevTools.Commands
                 case "badge":
                     player.TargetSetBadge(RealPlayers.Get(args[1]), args[2], args[3]);
                     break;
-                case "spawn1":
+                case "spawn":
                     {
-                        if (!this.primitiveObjects.ContainsKey(player))
-                            this.primitiveObjects[player] = GlobalHandler.GetPrimitiveObject(player);
+                        Vector3 pos;
+                        Quaternion rot;
+                        Vector3 scale;
+                        Room room = null;
+                        switch (args[1].ToLower())
+                        {
+                            case "relative":
+                                room = player.CurrentRoom;
+                                pos = room.Position;
+                                var offset = new Vector3(float.Parse(args[2]), float.Parse(args[3]), float.Parse(args[4]));
+                                offset = (room.transform.forward * -offset.x) + (room.transform.right * -offset.z) + (Vector3.up * offset.y);
+                                pos += offset;
+                                rot = Quaternion.Euler(room.transform.eulerAngles + new Vector3(float.Parse(args[5]), float.Parse(args[6]), float.Parse(args[7])));
+                                scale = new Vector3(float.Parse(args[8]), float.Parse(args[9]), float.Parse(args[10]));
+                                break;
+                            case "absolute":
+                                pos = new Vector3(float.Parse(args[2]), float.Parse(args[3]), float.Parse(args[4]));
+                                rot = Quaternion.Euler(float.Parse(args[5]), float.Parse(args[6]), float.Parse(args[7]));
+                                scale = new Vector3(float.Parse(args[8]), float.Parse(args[9]), float.Parse(args[10]));
+                                break;
+                            default:
+                                return new string[] { $"Unknown spawn type ({args[1].ToLower()}):", "- relative", "- absolute" };
+                        }
 
-                        var basePos = player.CurrentRoom.Position;
-                        var offset = new Vector3(float.Parse(args[3]), float.Parse(args[4]), float.Parse(args[5]));
-                        offset = (player.CurrentRoom.transform.forward * -offset.x) + (player.CurrentRoom.transform.right * -offset.z) + (Vector3.up * offset.y);
-                        basePos += offset;
+                        switch (args[11].ToLower())
+                        {
+                            case "door":
+                                {
+                                    DoorUtils.DoorType type;
+                                    switch (args[12].ToLower())
+                                    {
+                                        case "lcz":
+                                            type = DoorUtils.DoorType.LCZ_BREAKABLE;
+                                            break;
+                                        case "hcz":
+                                            type = DoorUtils.DoorType.HCZ_BREAKABLE;
+                                            break;
+                                        case "ez":
+                                            type = DoorUtils.DoorType.EZ_BREAKABLE;
+                                            break;
+                                        default:
+                                            return new string[] { $"Unknown door type ({args[12].ToLower()}):", "- lcz", "- hcz", "- ez" };
+                                    }
 
-                        if (!System.Enum.TryParse<PrimitiveType>(args[1], true, out var type))
-                            type = PrimitiveType.Sphere;
-                        if (!ColorUtility.TryParseHtmlString(args[2], out var color))
-                            color = Color.gray;
+                                    if (this.door != null)
+                                        NetworkServer.Destroy(this.door.gameObject);
+                                    this.door = DoorUtils.SpawnDoor(type, pos, rot.eulerAngles, scale);
+                                    if (!(args.Length > 13 && args[13].ToLower() == "breakable"))
+                                        (this.door as BreakableDoor)._brokenPrefab = null;
 
-                        this.primitiveObjects[player].NetworkPrimitiveType = type;
-                        this.primitiveObjects[player].transform.position = basePos;
-                        this.primitiveObjects[player].transform.rotation = Quaternion.Euler(player.CurrentRoom.transform.eulerAngles + new Vector3(float.Parse(args[6]), float.Parse(args[7]), float.Parse(args[8])));
-                        this.primitiveObjects[player].transform.localScale = new Vector3(float.Parse(args[9]), float.Parse(args[10]), float.Parse(args[11]));
-                        this.primitiveObjects[player].NetworkMaterialColor = color;
+                                    return new string[]
+                                    {
+                                        $"Spawned {type}",
+                                        $"In   : {(room == null ? "Absolute" : room.Type.ToString())}",
+                                        $"Pos  : {pos}",
+                                        $"Rot  : {rot}",
+                                        $"Scale: {scale}",
+                                    };
+                                }
 
-                        return new string[] { player.CurrentRoom.Type + string.Empty, basePos.x + string.Empty, basePos.y + string.Empty, basePos.z + string.Empty, player.CurrentRoom.Type.ToString() + string.Empty };
+                            case "toy":
+                                {
+                                    PrimitiveType type;
+                                    Color color;
+                                    switch (args[12].ToLower())
+                                    {
+                                        case "light":
+                                            {
+                                                if (!this.lightSources.ContainsKey(player))
+                                                    this.lightSources[player] = GlobalHandler.GetLightSourceObject();
+
+                                                if (!ColorUtility.TryParseHtmlString(args[13], out color))
+                                                    color = Color.gray;
+
+                                                this.lightSources[player].transform.position = pos;
+                                                this.lightSources[player].transform.rotation = rot;
+                                                this.lightSources[player].transform.localScale = scale;
+                                                this.lightSources[player].NetworkLightColor = color;
+                                                this.lightSources[player].NetworkLightIntensity = float.Parse(args[14]);
+                                                this.lightSources[player].NetworkLightRange = float.Parse(args[15]);
+                                                this.lightSources[player].NetworkLightShadows = bool.Parse(args[16]);
+
+                                                return new string[]
+                                                {
+                                                    $"Spawned light source",
+                                                    $"In       : {(room == null ? "Absolute" : room.Type.ToString())}",
+                                                    $"Pos      : {pos}",
+                                                    $"Rot      : {rot}",
+                                                    $"Scale    : {scale}",
+                                                    $"Color    : {color}",
+                                                    $"Intensity: {this.lightSources[player].NetworkLightIntensity}",
+                                                    $"Range    : {this.lightSources[player].NetworkLightRange}",
+                                                    $"Shadows  : {this.lightSources[player].NetworkLightShadows}",
+                                                };
+                                            }
+
+                                        case "cube":
+                                            type = PrimitiveType.Cube;
+                                            break;
+                                        case "plane":
+                                            type = PrimitiveType.Plane;
+                                            break;
+                                        case "quad":
+                                            type = PrimitiveType.Quad;
+                                            break;
+                                        case "sphere":
+                                            type = PrimitiveType.Sphere;
+                                            break;
+                                        case "capsule":
+                                            type = PrimitiveType.Capsule;
+                                            break;
+                                        case "cylinder":
+                                            type = PrimitiveType.Cylinder;
+                                            break;
+                                        default:
+                                            return new string[] { $"Unknown toy type ({args[12].ToLower()}):", "- light", "- cube", "- plane", "- quad", "- sphere", "- capsule", "- cylinder" };
+                                    }
+
+                                    if (!this.primitiveObjects.ContainsKey(player))
+                                        this.primitiveObjects[player] = GlobalHandler.GetPrimitiveObject();
+
+                                    if (!ColorUtility.TryParseHtmlString(args[13], out color))
+                                        color = Color.gray;
+
+                                    this.primitiveObjects[player].NetworkPrimitiveType = type;
+                                    this.primitiveObjects[player].transform.position = pos;
+                                    this.primitiveObjects[player].transform.rotation = rot;
+                                    this.primitiveObjects[player].transform.localScale = scale;
+                                    this.primitiveObjects[player].NetworkMaterialColor = color;
+
+                                    return new string[]
+                                    {
+                                        $"Spawned {type}",
+                                        $"In   : {(room == null ? "Absolute" : room.Type.ToString())}",
+                                        $"Pos  : {pos}",
+                                        $"Rot  : {rot}",
+                                        $"Scale: {scale}",
+                                        $"Color: {color}",
+                                    };
+                                }
+
+                            case "workstation":
+                                {
+                                    var workStation = GameObject.Instantiate(CustomNetworkManager.singleton.spawnPrefabs.First(x => x.name == "Work Station"));
+                                    workStation.transform.position = pos;
+                                    workStation.transform.rotation = rot;
+                                    workStation.transform.localScale = scale;
+                                    NetworkServer.Spawn(workStation);
+                                    return new string[]
+                                    {
+                                        $"Spawned workstation",
+                                        $"In   : {(room == null ? "Absolute" : room.Type.ToString())}",
+                                        $"Pos  : {pos}",
+                                        $"Rot  : {rot}",
+                                        $"Scale: {scale}",
+                                    };
+                                }
+
+                            default:
+                                return new string[] { $"Unknown spawn item ({args[11].ToLower()}):", "- door", "- toy", "- workstation" };
+                        }
                     }
 
                 case "spawn2":
@@ -101,7 +243,7 @@ namespace Mistaken.DevTools.Commands
                         offset = (player.CurrentRoom.transform.forward * -offset.x) + (player.CurrentRoom.transform.right * -offset.z) + (Vector3.up * offset.y);
                         pos += offset;
 
-                        var obj = GlobalHandler.GetPrimitiveObject(player);
+                        var obj = GlobalHandler.GetPrimitiveObject();
 
                         if (!System.Enum.TryParse<PrimitiveType>(args[1], true, out var type))
                             type = PrimitiveType.Sphere;
@@ -137,7 +279,7 @@ namespace Mistaken.DevTools.Commands
                             return new string[] { "Failed to remove object!" };
                         }
 
-                        var obj = GlobalHandler.GetPrimitiveObject(player);
+                        var obj = GlobalHandler.GetPrimitiveObject();
 
                         if (!System.Enum.TryParse<PrimitiveType>(args[1], true, out var type))
                             type = PrimitiveType.Sphere;
@@ -156,16 +298,6 @@ namespace Mistaken.DevTools.Commands
                         this.absolutePrimitiveObjectsList[player].Add(obj);
 
                         return new string[] { $"Spawned {type} at {pos} with color {color}. Use \".test spawn3 remove\" to remove last spawned object." };
-                    }
-
-                case "spawn4":
-                    {
-                        if (this.door != null)
-                            NetworkServer.Destroy(this.door.gameObject);
-                        var pos = new Vector3(float.Parse(args[1]), float.Parse(args[2]), float.Parse(args[3]));
-                        this.door = DoorUtils.SpawnDoor(DoorUtils.DoorType.HCZ_BREAKABLE, pos, new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6])), new Vector3(float.Parse(args[7]), float.Parse(args[8]), float.Parse(args[9])), name: "tmp_door");
-                        (this.door as BreakableDoor)._brokenPrefab = null;
-                        return new string[] { this.door.transform.position.x + string.Empty, this.door.transform.position.y + string.Empty, this.door.transform.position.z + string.Empty };
                     }
 
                 case "spawn5":
@@ -201,21 +333,6 @@ namespace Mistaken.DevTools.Commands
                         return new string[] { this.door.transform.position.x + string.Empty, this.door.transform.position.y + string.Empty, this.door.transform.position.z + string.Empty };
                     }
 
-                case "spawn7":
-                    {
-                        if (this.door != null)
-                            NetworkServer.Destroy(this.door.gameObject);
-                        var pos = new Vector3(float.Parse(args[1]), float.Parse(args[2]), float.Parse(args[3]));
-                        var rot = new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6]));
-                        var scale = new Vector3(float.Parse(args[7]), float.Parse(args[8]), float.Parse(args[9]));
-                        var basePos = player.CurrentRoom.Position;
-                        pos = (player.CurrentRoom.transform.forward * -pos.x) + (player.CurrentRoom.transform.right * -pos.z) + (Vector3.up * pos.y);
-                        basePos += pos;
-                        this.door = DoorUtils.SpawnDoor(DoorUtils.DoorType.HCZ_BREAKABLE, basePos, rot, scale, name: "tmp_door");
-                        (this.door as BreakableDoor)._brokenPrefab = null;
-                        return new string[] { this.door.transform.position.x + string.Empty, this.door.transform.position.y + string.Empty, this.door.transform.position.z + string.Empty };
-                    }
-
                 case "attp":
                     {
                         if (args[1].ToLower() == "remove")
@@ -236,7 +353,7 @@ namespace Mistaken.DevTools.Commands
                             return new string[] { "Failed to remove object!" };
                         }
 
-                        var obj = GlobalHandler.GetPrimitiveObject(player);
+                        var obj = GlobalHandler.GetPrimitiveObject();
                         var player2 = RealPlayers.Get(args[1]);
                         if (player2 is null)
                             player2 = player;
@@ -318,9 +435,8 @@ namespace Mistaken.DevTools.Commands
                     CustomRole.Get(int.Parse(args[1])).AddRole(RealPlayers.Get(args[2]));
                     break;
 
-                case "spc":
-                    player.SpectatedPlayer = Player.Get(args[1]);
-                    break;
+                case "networkprefabs":
+                    return CustomNetworkManager.singleton.spawnPrefabs.Select(x => x.name).ToArray();
             }
 
             success = true;
@@ -328,6 +444,7 @@ namespace Mistaken.DevTools.Commands
         }
 
         private readonly Dictionary<Player, PrimitiveObjectToy> primitiveObjects = new Dictionary<Player, PrimitiveObjectToy>();
+        private readonly Dictionary<Player, LightSourceToy> lightSources = new Dictionary<Player, LightSourceToy>();
         private readonly Dictionary<Player, List<PrimitiveObjectToy>> absolutePrimitiveObjectsList = new Dictionary<Player, List<PrimitiveObjectToy>>();
         private readonly Dictionary<Player, List<PrimitiveObjectToy>> primitiveObjectsList = new Dictionary<Player, List<PrimitiveObjectToy>>();
         private readonly Dictionary<Player, List<PrimitiveObjectToy>> playerAttachedObjects = new Dictionary<Player, List<PrimitiveObjectToy>>();

@@ -4,11 +4,13 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using Discord_Webhook;
 using Exiled.API.Features;
-using Mirror;
 using Mistaken.API.Diagnostics;
 using Mistaken.API.Extensions;
-using RoundRestarting;
 using UnityEngine;
 
 namespace Mistaken.DevTools
@@ -29,55 +31,26 @@ namespace Mistaken.DevTools
         public override void OnEnable()
         {
             this.CallDelayed(2, () => Exiled.Events.Handlers.Player.Banning += this.Player_Banning, "SlowRegister");
-
-            // Exiled.Events.Handlers.Server.RoundEnded += this.Server_RoundEnded;
+            API.Diagnostics.MasterHandler.OnErrorCatched += this.MasterHandler_OnErrorCatched;
+            Exiled.Events.Handlers.Server.RoundStarted += this.IniTPSCounter;
         }
 
         /// <inheritdoc/>
         public override void OnDisable()
         {
             Exiled.Events.Handlers.Player.Banning -= this.Player_Banning;
-
-            // Exiled.Events.Handlers.Server.RoundEnded -= this.Server_RoundEnded;
+            API.Diagnostics.MasterHandler.OnErrorCatched -= this.MasterHandler_OnErrorCatched;
+            Exiled.Events.Handlers.Server.RoundStarted -= this.IniTPSCounter;
         }
 
-        internal static AdminToys.PrimitiveObjectToy GetPrimitiveObject(Player admin)
+        internal static AdminToys.PrimitiveObjectToy GetPrimitiveObject()
         {
-            foreach (var obj in NetworkClient.prefabs.Values)
-            {
-                if (obj.TryGetComponent<AdminToys.PrimitiveObjectToy>(out var adminToyBase))
-                {
-                    AdminToys.PrimitiveObjectToy primitiveObject = UnityEngine.Object.Instantiate<AdminToys.PrimitiveObjectToy>(adminToyBase);
-                    primitiveObject.OnSpawned(admin.ReferenceHub, new string[0].Segment(0));
-                    return primitiveObject;
-                }
-            }
-
-            return null;
+            return API.MapPlus.SpawnPrimitive(UnityEngine.PrimitiveType.Sphere, new GameObject().transform, Color.red, true);
         }
 
-        internal static AdminToys.LightSourceToy GetLightSourceObject(Player admin)
+        internal static AdminToys.LightSourceToy GetLightSourceObject()
         {
-            foreach (var obj in NetworkClient.prefabs.Values)
-            {
-                if (obj.TryGetComponent<AdminToys.LightSourceToy>(out var adminToyBase))
-                {
-                    AdminToys.LightSourceToy lightSourceObj = UnityEngine.Object.Instantiate<AdminToys.LightSourceToy>(adminToyBase);
-                    lightSourceObj.OnSpawned(admin.ReferenceHub, new string[0].Segment(0));
-                    return lightSourceObj;
-                }
-            }
-
-            return null;
-        }
-
-        private void Server_RoundEnded(Exiled.Events.EventArgs.RoundEndedEventArgs ev)
-        {
-            this.CallDelayed(5, () =>
-            {
-                Mirror.NetworkServer.SendToAll<RoundRestartMessage>(new RoundRestartMessage(RoundRestartType.FullRestart, 20f, 0, true));
-                this.CallDelayed(.1f, () => Server.Restart());
-            });
+            return API.MapPlus.SpawnLight(new GameObject().transform, Color.red, 1, 1, false, true);
         }
 
         private void Player_Banning(Exiled.Events.EventArgs.BanningEventArgs ev)
@@ -88,6 +61,69 @@ namespace Mistaken.DevTools
                 ev.Target.Broadcast("DEV TOOLS", 5, "<color=red><b>Denied</b> banning Dev</color>", Broadcast.BroadcastFlags.AdminChat);
                 ev.Target.SendConsoleMessage($"[<b>DEV TOOLS</b>] Denied banning Dev:\n- Duration: {ev.Duration}\n- Reason: {ev.Reason}\n- Issuer: {ev.Issuer.ToString(false)}", "red");
             }
+        }
+
+        private string ExceptionToString(System.Exception ex)
+        {
+            string stackTrace = ex.StackTrace;
+            stackTrace = Regex.Replace(stackTrace, "(\\s*\\[0x\\d*\\] in <.*>:\\d*)|(\\s*\\[0x\\d*\\]\\s*at \\(wrapper managed - to - native\\))|(\\s*at \\(wrapper managed-to-native\\))", string.Empty);
+            var index = stackTrace.IndexOf("System.Reflection.MonoMethod.InternalInvoke");
+            if (index != -1)
+                stackTrace = stackTrace.Substring(0, index);
+
+            string message = ex.Message;
+            string tor = !string.IsNullOrEmpty(message) ? (ex.GetType().Name + ": " + message) : ex.GetType().Name;
+            if (ex.InnerException != null)
+                tor += " ---> " + this.ExceptionToString(ex.InnerException) + Environment.NewLine + "   --- End of inner exception stack trace ---";
+
+            if (stackTrace != null)
+                tor += Environment.NewLine + stackTrace;
+
+            return tor;
+        }
+
+        private void MasterHandler_OnErrorCatched(System.Exception ex, string method)
+        {
+            if (string.IsNullOrWhiteSpace(PluginHandler.Instance.Config.WebhookLink))
+                return;
+
+            this.Send(new Webhook(PluginHandler.Instance.Config.WebhookLink)
+                .AddMessage(msg => msg
+                    .WithAvatar(PluginHandler.Instance.Config.WebhookAvatar)
+                    .WithUsername(PluginHandler.Instance.Config.WebhookUsername)
+                    .WithContent(string.Concat(
+                            $"[❗] ",
+                            $"[`{Server.Port}`] ",
+                            $"[`{DateTime.Now:HH:mm:ss}`] ",
+                            $"Exception by `{method}`"))
+                    .WithEmbed(embed => embed
+                        .WithColor(255, 0, 0)
+                        .WithDescription($"```{this.ExceptionToString(ex)}```"))));
+        }
+
+        private async void Send(Webhook webhook)
+        {
+            var result = await webhook.Send();
+
+            if (string.IsNullOrWhiteSpace(result))
+                return;
+
+            if (result.StartsWith("System.Net.WebException: The remote server returned an error: (429) Too Many Requests."))
+            {
+                this.Log.Warn("[Webhook] Failed to send error hook, I was too fast (429)");
+                _ = Task.Run(() =>
+                {
+                    Task.Delay(6000).Wait();
+                    this.Send(webhook);
+                });
+            }
+            else
+                this.Log.Error($"[Webhook] {result}");
+        }
+
+        private void IniTPSCounter()
+        {
+            Server.Host.GameObject.AddComponent<TPSCounter>();
         }
     }
 }

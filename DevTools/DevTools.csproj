@@ -34,6 +34,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Discord_Webhook">
+      <HintPath>..\..\..\..\MistakenReferences\Discord_Webhook.dll</HintPath>
+    </Reference>
     <Reference Include="Exiled.API" HintPath="$(MISTAKEN_REFERENCES)\Exiled.API.dll" />
     <Reference Include="Exiled.Events" HintPath="$(MISTAKEN_REFERENCES)\Exiled.Events.dll" />
     <Reference Include="Exiled.Permissions" HintPath="$(MISTAKEN_REFERENCES)\Exiled.Permissions.dll" />
@@ -63,6 +66,7 @@
     <Compile Include="ACSmolPatch.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="DevTestCommand.cs" />
+    <Compile Include="TPSCounter.cs" />
     <Compile Include="GlobalHandler.cs" />
     <Compile Include="PluginHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
