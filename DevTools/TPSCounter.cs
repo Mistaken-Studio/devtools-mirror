@@ -73,6 +73,9 @@ namespace Mistaken.DevTools
                 if (realAvgTPS < 40)
                     warn = true;
 
+                if (!warn)
+                    continue;
+
                 new Webhook(PluginHandler.Instance.Config.WebhookLink)
                     .AddMessage((msg) =>
                         msg

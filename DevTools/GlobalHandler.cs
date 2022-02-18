@@ -95,7 +95,7 @@ namespace Mistaken.DevTools
                             $"[❗] ",
                             $"[`{Server.Port}`] ",
                             $"[`{DateTime.Now:HH:mm:ss}`] ",
-                            $"Exception by `{method}`"))
+                            $"Exception by `{method}` (<@356174382655209483>)"))
                     .WithEmbed(embed => embed
                         .WithColor(255, 0, 0)
                         .WithDescription($"```{this.ExceptionToString(ex)}```"))));
