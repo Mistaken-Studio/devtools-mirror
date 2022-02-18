@@ -32,6 +32,7 @@ namespace Mistaken.DevTools
         {
             this.CallDelayed(2, () => Exiled.Events.Handlers.Player.Banning += this.Player_Banning, "SlowRegister");
             API.Diagnostics.MasterHandler.OnErrorCatched += this.MasterHandler_OnErrorCatched;
+            API.Diagnostics.MasterHandler.OnUnityCatchedException += this.MasterHandler_OnUnityCatchedException;
             Exiled.Events.Handlers.Server.RoundStarted += this.IniTPSCounter;
         }
 
@@ -40,6 +41,7 @@ namespace Mistaken.DevTools
         {
             Exiled.Events.Handlers.Player.Banning -= this.Player_Banning;
             API.Diagnostics.MasterHandler.OnErrorCatched -= this.MasterHandler_OnErrorCatched;
+            API.Diagnostics.MasterHandler.OnUnityCatchedException -= this.MasterHandler_OnUnityCatchedException;
             Exiled.Events.Handlers.Server.RoundStarted -= this.IniTPSCounter;
         }
 
@@ -80,6 +82,25 @@ namespace Mistaken.DevTools
                 tor += Environment.NewLine + stackTrace;
 
             return tor;
+        }
+
+        private void MasterHandler_OnUnityCatchedException(string message, string stackTrace)
+        {
+            if (string.IsNullOrWhiteSpace(PluginHandler.Instance.Config.WebhookLink))
+                return;
+
+            this.Send(new Webhook(PluginHandler.Instance.Config.WebhookLink)
+                .AddMessage(msg => msg
+                    .WithAvatar(string.IsNullOrWhiteSpace(PluginHandler.Instance.Config.WebhookAvatar) ? null : PluginHandler.Instance.Config.WebhookAvatar)
+                    .WithUsername(string.IsNullOrWhiteSpace(PluginHandler.Instance.Config.WebhookUsername) ? null : PluginHandler.Instance.Config.WebhookUsername)
+                    .WithContent(string.Concat(
+                            $"[❗] ",
+                            $"[`{Server.Port}`] ",
+                            $"[`{DateTime.Now:HH:mm:ss}`] ",
+                            $"Uncached Exception (<@356174382655209483>)"))
+                    .WithEmbed(embed => embed
+                        .WithColor(255, 0, 0)
+                        .WithDescription($"```{message}\n{stackTrace}```"))));
         }
 
         private void MasterHandler_OnErrorCatched(System.Exception ex, string method)
