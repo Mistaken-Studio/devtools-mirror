@@ -21,6 +21,21 @@ namespace Mistaken.DevTools
         [Description("If true then debug will be displayed")]
         public bool VerbouseOutput { get; set; }
 
+        /// <summary>
+        /// Gets or sets webhook Diagnostics Link.
+        /// </summary>
+        public string WebhookLink { get; set; } = null;
+
+        /// <summary>
+        /// Gets or sets webhook Diagnostics Username.
+        /// </summary>
+        public string WebhookUsername { get; set; } = null;
+
+        /// <summary>
+        /// Gets or sets webhook Diagnostics Avatar.
+        /// </summary>
+        public string WebhookAvatar { get; set; } = null;
+
         /// <inheritdoc/>
         [Description("Auto Update Settings")]
         public System.Collections.Generic.Dictionary<string, string> AutoUpdateConfig { get; set; } = new System.Collections.Generic.Dictionary<string, string>

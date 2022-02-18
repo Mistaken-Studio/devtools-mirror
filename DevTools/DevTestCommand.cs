@@ -127,7 +127,7 @@ namespace Mistaken.DevTools.Commands
                                         case "light":
                                             {
                                                 if (!this.lightSources.ContainsKey(player))
-                                                    this.lightSources[player] = GlobalHandler.GetLightSourceObject(player);
+                                                    this.lightSources[player] = GlobalHandler.GetLightSourceObject();
 
                                                 if (!ColorUtility.TryParseHtmlString(args[13], out color))
                                                     color = Color.gray;
@@ -177,7 +177,7 @@ namespace Mistaken.DevTools.Commands
                                     }
 
                                     if (!this.primitiveObjects.ContainsKey(player))
-                                        this.primitiveObjects[player] = GlobalHandler.GetPrimitiveObject(player);
+                                        this.primitiveObjects[player] = GlobalHandler.GetPrimitiveObject();
 
                                     if (!ColorUtility.TryParseHtmlString(args[13], out color))
                                         color = Color.gray;
@@ -243,7 +243,7 @@ namespace Mistaken.DevTools.Commands
                         offset = (player.CurrentRoom.transform.forward * -offset.x) + (player.CurrentRoom.transform.right * -offset.z) + (Vector3.up * offset.y);
                         pos += offset;
 
-                        var obj = GlobalHandler.GetPrimitiveObject(player);
+                        var obj = GlobalHandler.GetPrimitiveObject();
 
                         if (!System.Enum.TryParse<PrimitiveType>(args[1], true, out var type))
                             type = PrimitiveType.Sphere;
@@ -279,7 +279,7 @@ namespace Mistaken.DevTools.Commands
                             return new string[] { "Failed to remove object!" };
                         }
 
-                        var obj = GlobalHandler.GetPrimitiveObject(player);
+                        var obj = GlobalHandler.GetPrimitiveObject();
 
                         if (!System.Enum.TryParse<PrimitiveType>(args[1], true, out var type))
                             type = PrimitiveType.Sphere;
@@ -353,7 +353,7 @@ namespace Mistaken.DevTools.Commands
                             return new string[] { "Failed to remove object!" };
                         }
 
-                        var obj = GlobalHandler.GetPrimitiveObject(player);
+                        var obj = GlobalHandler.GetPrimitiveObject();
                         var player2 = RealPlayers.Get(args[1]);
                         if (player2 is null)
                             player2 = player;
