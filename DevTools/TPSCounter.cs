@@ -85,6 +85,7 @@ namespace Mistaken.DevTools
                             $"[{(warn ? "⚠" : "❕")}] ",
                             $"[`{Server.Port}`] ",
                             $"[`{DateTime.Now:HH:mm:ss}`] ",
+                            $"[`{Round.ElapsedTime:mm:ss}`] ",
                             $"TPS: `{tps:00.00}`, ",
                             $"Real Avg TPS: `{realAvgTPS:00.00}`, ",
                             $"`{second:0.000}s/1s`"))).Send();
@@ -104,7 +105,7 @@ namespace Mistaken.DevTools
                             msg
                             .WithAvatar(string.IsNullOrWhiteSpace(PluginHandler.Instance.Config.WebhookAvatar) ? null : PluginHandler.Instance.Config.WebhookAvatar)
                             .WithUsername(string.IsNullOrWhiteSpace(PluginHandler.Instance.Config.WebhookUsername) ? null : PluginHandler.Instance.Config.WebhookUsername)
-                            .WithContent($"[⚠] [`{Server.Port}`] [`{DateTime.Now:HH:mm:ss}`] One of ticks took: `{delta:0.000}s`")).Send();
+                            .WithContent($"[⚠] [`{Server.Port}`] [`{DateTime.Now:HH:mm:ss}`] [`{Round.ElapsedTime:mm:ss}`] One of ticks took: `{delta:0.000}s`")).Send();
                 }
             }
         }
