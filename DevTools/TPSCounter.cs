@@ -64,13 +64,13 @@ namespace Mistaken.DevTools
                 var second = Math.Round(tpsArr.Average(x => x.Second), 3);
                 var realAvgTPS = Math.Round(tpsArr.Sum(x => x.Ticks) / tpsArr.Sum(x => x.Second), 2);
                 bool warn = false;
-                if (tps < 40)
+                if (tps < 30)
                     warn = true;
 
-                if (second > 1.05f)
+                if (second > 1.1f)
                     warn = true;
 
-                if (realAvgTPS < 40)
+                if (realAvgTPS < 30)
                     warn = true;
 
                 if (!warn)
@@ -85,6 +85,7 @@ namespace Mistaken.DevTools
                             $"[{(warn ? "⚠" : "❕")}] ",
                             $"[`{Server.Port}`] ",
                             $"[`{DateTime.Now:HH:mm:ss}`] ",
+                            $"[`{Round.ElapsedTime.Minutes:00}:{Round.ElapsedTime.Seconds:00}`] ",
                             $"TPS: `{tps:00.00}`, ",
                             $"Real Avg TPS: `{realAvgTPS:00.00}`, ",
                             $"`{second:0.000}s/1s`"))).Send();
@@ -104,7 +105,7 @@ namespace Mistaken.DevTools
                             msg
                             .WithAvatar(string.IsNullOrWhiteSpace(PluginHandler.Instance.Config.WebhookAvatar) ? null : PluginHandler.Instance.Config.WebhookAvatar)
                             .WithUsername(string.IsNullOrWhiteSpace(PluginHandler.Instance.Config.WebhookUsername) ? null : PluginHandler.Instance.Config.WebhookUsername)
-                            .WithContent($"[⚠] [`{Server.Port}`] [`{DateTime.Now:HH:mm:ss}`] One of ticks took: `{delta:0.000}s`")).Send();
+                            .WithContent($"[⚠] [`{Server.Port}`] [`{DateTime.Now:HH:mm:ss}`] [`{Round.ElapsedTime.Minutes:00}:{Round.ElapsedTime.Seconds:00}`] One of ticks took: `{delta:0.000}s`")).Send();
                 }
             }
         }

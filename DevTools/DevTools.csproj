@@ -34,9 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Discord_Webhook">
-      <HintPath>$(MISTAKEN_REFERENCES)\Discord_Webhook.dll</HintPath>
-    </Reference>
+    <Reference Include="Discord_Webhook" HintPath="$(MISTAKEN_REFERENCES)\Discord_Webhook.dll" />
     <Reference Include="Exiled.API" HintPath="$(MISTAKEN_REFERENCES)\Exiled.API.dll" />
     <Reference Include="Exiled.Events" HintPath="$(MISTAKEN_REFERENCES)\Exiled.Events.dll" />
     <Reference Include="Exiled.Permissions" HintPath="$(MISTAKEN_REFERENCES)\Exiled.Permissions.dll" />
