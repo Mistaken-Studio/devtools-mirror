@@ -98,7 +98,7 @@ namespace Mistaken.DevTools
                             $"[`{Server.Port}`] ",
                             $"[`{DateTime.Now:HH:mm:ss}`] ",
                             $"[`{Round.ElapsedTime.Minutes:00}:{Round.ElapsedTime.Seconds:00}`] ",
-                            $"Uncached Exception (<@356174382655209483>)"))
+                            $"Uncached Exception"))
                     .WithEmbed(embed => embed
                         .WithColor(255, 0, 0)
                         .WithDescription($"```{message}\n{stackTrace}```"))));
@@ -118,7 +118,7 @@ namespace Mistaken.DevTools
                             $"[`{Server.Port}`] ",
                             $"[`{DateTime.Now:HH:mm:ss}`] ",
                             $"[`{Round.ElapsedTime.Minutes:00}:{Round.ElapsedTime.Seconds:00}`] ",
-                            $"Exception by `{method}` (<@356174382655209483>)"))
+                            $"Exception by `{method}`"))
                     .WithEmbed(embed => embed
                         .WithColor(255, 0, 0)
                         .WithDescription($"```{this.ExceptionToString(ex)}```"))));
