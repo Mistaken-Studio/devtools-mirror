@@ -300,6 +300,39 @@ namespace Mistaken.DevTools.Commands
                         return new string[] { $"Spawned {type} at {pos} with color {color}. Use \".test spawn3 remove\" to remove last spawned object." };
                     }
 
+                case "spawn4":
+                    {
+                        if (args[1].ToLower() == "remove")
+                        {
+                            if (this.primitiveObjectsList[player].Count != 0)
+                            {
+                                NetworkServer.Destroy(this.primitiveObjectsList[player].Last().gameObject);
+                                this.primitiveObjectsList[player].Remove(this.primitiveObjectsList[player].Last());
+                                foreach (var primObj in this.primitiveObjectsList[player])
+                                    player.SendConsoleMessage($"{primObj.netId}", "gray");
+
+                                return new string[] { "Object removed successfully!" };
+                            }
+
+                            return new string[] { "Failed to remove object!" };
+                        }
+
+                        var offset = new Vector3(float.Parse(args[2]), float.Parse(args[3]), float.Parse(args[4]));
+                        var obj = MapPlus.SpawnPrimitive(PrimitiveType.Cube, player.CurrentRoom.Transform, Color.red, true);
+
+                        if (!ColorUtility.TryParseHtmlString(args[1], out var color))
+                            color = Color.gray;
+
+                        obj.transform.localPosition = offset;
+                        obj.transform.localScale = new Vector3(float.Parse(args[5]), float.Parse(args[6]), float.Parse(args[7]));
+                        obj.NetworkMaterialColor = color;
+                        if (!this.primitiveObjectsList.ContainsKey(player))
+                            this.primitiveObjectsList.Add(player, new List<PrimitiveObjectToy>());
+                        this.primitiveObjectsList[player].Add(obj);
+
+                        return new string[] { $"Spawned cube at {obj.transform.position} with color {color}. Use \".test spawn2 remove\" to remove last spawned object." };
+                    }
+
                 case "spawn5":
                     {
                         if (this.door != null)
