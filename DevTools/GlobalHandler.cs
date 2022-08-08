@@ -34,6 +34,7 @@ namespace Mistaken.DevTools
             API.Diagnostics.MasterHandler.OnErrorCatched += this.MasterHandler_OnErrorCatched;
             API.Diagnostics.MasterHandler.OnUnityCatchedException += this.MasterHandler_OnUnityCatchedException;
             Exiled.Events.Handlers.Server.RoundStarted += this.IniTPSCounter;
+            Exiled.Events.Handlers.Server.WaitingForPlayers += this.Server_WaitingForPlayers;
         }
 
         /// <inheritdoc/>
@@ -43,6 +44,7 @@ namespace Mistaken.DevTools
             API.Diagnostics.MasterHandler.OnErrorCatched -= this.MasterHandler_OnErrorCatched;
             API.Diagnostics.MasterHandler.OnUnityCatchedException -= this.MasterHandler_OnUnityCatchedException;
             Exiled.Events.Handlers.Server.RoundStarted -= this.IniTPSCounter;
+            Exiled.Events.Handlers.Server.WaitingForPlayers -= this.Server_WaitingForPlayers;
         }
 
         internal static AdminToys.PrimitiveObjectToy GetPrimitiveObject()
@@ -147,6 +149,17 @@ namespace Mistaken.DevTools
         private void IniTPSCounter()
         {
             Server.Host.GameObject.AddComponent<TPSCounter>();
+        }
+
+        private void Server_WaitingForPlayers()
+        {
+            Commands.DevTestCommand.InRangeVisualisationObjects.Clear();
+            Commands.DevTestCommand.LightSources.Clear();
+            Commands.DevTestCommand.PlayerAttachedObjects.Clear();
+            Commands.DevTestCommand.AbsolutePrimitiveObjectsList.Clear();
+            Commands.DevTestCommand.PrimitiveObjects.Clear();
+            Commands.DevTestCommand.PrimitiveObjectsList.Clear();
+            Commands.DevTestCommand.InRangeVisualisation = false;
         }
     }
 }

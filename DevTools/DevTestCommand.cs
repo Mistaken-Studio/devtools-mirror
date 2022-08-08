@@ -19,6 +19,7 @@ using InventorySystem.Items.Firearms.Attachments;
 using Mirror;
 using Mistaken.API;
 using Mistaken.API.Commands;
+using Mistaken.API.Components;
 using Mistaken.API.Extensions;
 using Mistaken.API.GUI;
 using UnityEngine;
@@ -126,19 +127,19 @@ namespace Mistaken.DevTools.Commands
                                     {
                                         case "light":
                                             {
-                                                if (!this.lightSources.ContainsKey(player))
-                                                    this.lightSources[player] = GlobalHandler.GetLightSourceObject();
+                                                if (!LightSources.ContainsKey(player))
+                                                    LightSources[player] = GlobalHandler.GetLightSourceObject();
 
                                                 if (!ColorUtility.TryParseHtmlString(args[13], out color))
                                                     color = Color.gray;
 
-                                                this.lightSources[player].transform.position = pos;
-                                                this.lightSources[player].transform.rotation = rot;
-                                                this.lightSources[player].transform.localScale = scale;
-                                                this.lightSources[player].NetworkLightColor = color;
-                                                this.lightSources[player].NetworkLightIntensity = float.Parse(args[14]);
-                                                this.lightSources[player].NetworkLightRange = float.Parse(args[15]);
-                                                this.lightSources[player].NetworkLightShadows = bool.Parse(args[16]);
+                                                LightSources[player].transform.position = pos;
+                                                LightSources[player].transform.rotation = rot;
+                                                LightSources[player].transform.localScale = scale;
+                                                LightSources[player].NetworkLightColor = color;
+                                                LightSources[player].NetworkLightIntensity = float.Parse(args[14]);
+                                                LightSources[player].NetworkLightRange = float.Parse(args[15]);
+                                                LightSources[player].NetworkLightShadows = bool.Parse(args[16]);
 
                                                 return new string[]
                                                 {
@@ -148,9 +149,9 @@ namespace Mistaken.DevTools.Commands
                                                     $"Rot      : {rot}",
                                                     $"Scale    : {scale}",
                                                     $"Color    : {color}",
-                                                    $"Intensity: {this.lightSources[player].NetworkLightIntensity}",
-                                                    $"Range    : {this.lightSources[player].NetworkLightRange}",
-                                                    $"Shadows  : {this.lightSources[player].NetworkLightShadows}",
+                                                    $"Intensity: {LightSources[player].NetworkLightIntensity}",
+                                                    $"Range    : {LightSources[player].NetworkLightRange}",
+                                                    $"Shadows  : {LightSources[player].NetworkLightShadows}",
                                                 };
                                             }
 
@@ -176,17 +177,17 @@ namespace Mistaken.DevTools.Commands
                                             return new string[] { $"Unknown toy type ({args[12].ToLower()}):", "- light", "- cube", "- plane", "- quad", "- sphere", "- capsule", "- cylinder" };
                                     }
 
-                                    if (!this.primitiveObjects.ContainsKey(player))
-                                        this.primitiveObjects[player] = GlobalHandler.GetPrimitiveObject();
+                                    if (!PrimitiveObjects.ContainsKey(player))
+                                        PrimitiveObjects[player] = GlobalHandler.GetPrimitiveObject();
 
                                     if (!ColorUtility.TryParseHtmlString(args[13], out color))
                                         color = Color.gray;
 
-                                    this.primitiveObjects[player].NetworkPrimitiveType = type;
-                                    this.primitiveObjects[player].transform.position = pos;
-                                    this.primitiveObjects[player].transform.rotation = rot;
-                                    this.primitiveObjects[player].transform.localScale = scale;
-                                    this.primitiveObjects[player].NetworkMaterialColor = color;
+                                    PrimitiveObjects[player].NetworkPrimitiveType = type;
+                                    PrimitiveObjects[player].transform.position = pos;
+                                    PrimitiveObjects[player].transform.rotation = rot;
+                                    PrimitiveObjects[player].transform.localScale = scale;
+                                    PrimitiveObjects[player].NetworkMaterialColor = color;
 
                                     return new string[]
                                     {
@@ -225,11 +226,11 @@ namespace Mistaken.DevTools.Commands
                     {
                         if (args[1].ToLower() == "remove")
                         {
-                            if (this.primitiveObjectsList[player].Count != 0)
+                            if (PrimitiveObjectsList[player].Count != 0)
                             {
-                                NetworkServer.Destroy(this.primitiveObjectsList[player].Last().gameObject);
-                                this.primitiveObjectsList[player].Remove(this.primitiveObjectsList[player].Last());
-                                foreach (var primObj in this.primitiveObjectsList[player])
+                                NetworkServer.Destroy(PrimitiveObjectsList[player].Last().gameObject);
+                                PrimitiveObjectsList[player].Remove(PrimitiveObjectsList[player].Last());
+                                foreach (var primObj in PrimitiveObjectsList[player])
                                     player.SendConsoleMessage($"{primObj.netId}", "gray");
 
                                 return new string[] { "Object removed successfully!" };
@@ -255,9 +256,9 @@ namespace Mistaken.DevTools.Commands
                         obj.transform.rotation = Quaternion.Euler(player.CurrentRoom.transform.eulerAngles + new Vector3(float.Parse(args[6]), float.Parse(args[7]), float.Parse(args[8])));
                         obj.transform.localScale = new Vector3(float.Parse(args[9]), float.Parse(args[10]), float.Parse(args[11]));
                         obj.NetworkMaterialColor = color;
-                        if (!this.primitiveObjectsList.ContainsKey(player))
-                            this.primitiveObjectsList.Add(player, new List<PrimitiveObjectToy>());
-                        this.primitiveObjectsList[player].Add(obj);
+                        if (!PrimitiveObjectsList.ContainsKey(player))
+                            PrimitiveObjectsList.Add(player, new List<PrimitiveObjectToy>());
+                        PrimitiveObjectsList[player].Add(obj);
 
                         return new string[] { $"Spawned {type} at {pos} with color {color}. Use \".test spawn2 remove\" to remove last spawned object." };
                     }
@@ -266,11 +267,11 @@ namespace Mistaken.DevTools.Commands
                     {
                         if (args[1].ToLower() == "remove")
                         {
-                            if (this.absolutePrimitiveObjectsList[player].Count != 0)
+                            if (AbsolutePrimitiveObjectsList[player].Count != 0)
                             {
-                                NetworkServer.Destroy(this.absolutePrimitiveObjectsList[player].Last().gameObject);
-                                this.absolutePrimitiveObjectsList[player].Remove(this.absolutePrimitiveObjectsList[player].Last());
-                                foreach (var primObj in this.absolutePrimitiveObjectsList[player])
+                                NetworkServer.Destroy(AbsolutePrimitiveObjectsList[player].Last().gameObject);
+                                AbsolutePrimitiveObjectsList[player].Remove(AbsolutePrimitiveObjectsList[player].Last());
+                                foreach (var primObj in AbsolutePrimitiveObjectsList[player])
                                     player.SendConsoleMessage($"{primObj.netId}", "gray");
 
                                 return new string[] { "Object removed successfully!" };
@@ -293,9 +294,9 @@ namespace Mistaken.DevTools.Commands
                         obj.transform.rotation = Quaternion.Euler(new Vector3(float.Parse(args[6]), float.Parse(args[7]), float.Parse(args[8])));
                         obj.transform.localScale = new Vector3(float.Parse(args[9]), float.Parse(args[10]), float.Parse(args[11]));
                         obj.NetworkMaterialColor = color;
-                        if (!this.absolutePrimitiveObjectsList.ContainsKey(player))
-                            this.absolutePrimitiveObjectsList.Add(player, new List<PrimitiveObjectToy>());
-                        this.absolutePrimitiveObjectsList[player].Add(obj);
+                        if (!AbsolutePrimitiveObjectsList.ContainsKey(player))
+                            AbsolutePrimitiveObjectsList.Add(player, new List<PrimitiveObjectToy>());
+                        AbsolutePrimitiveObjectsList[player].Add(obj);
 
                         return new string[] { $"Spawned {type} at {pos} with color {color}. Use \".test spawn3 remove\" to remove last spawned object." };
                     }
@@ -304,11 +305,11 @@ namespace Mistaken.DevTools.Commands
                     {
                         if (args[1].ToLower() == "remove")
                         {
-                            if (this.primitiveObjectsList[player].Count != 0)
+                            if (PrimitiveObjectsList[player].Count != 0)
                             {
-                                NetworkServer.Destroy(this.primitiveObjectsList[player].Last().gameObject);
-                                this.primitiveObjectsList[player].Remove(this.primitiveObjectsList[player].Last());
-                                foreach (var primObj in this.primitiveObjectsList[player])
+                                NetworkServer.Destroy(PrimitiveObjectsList[player].Last().gameObject);
+                                PrimitiveObjectsList[player].Remove(PrimitiveObjectsList[player].Last());
+                                foreach (var primObj in PrimitiveObjectsList[player])
                                     player.SendConsoleMessage($"{primObj.netId}", "gray");
 
                                 return new string[] { "Object removed successfully!" };
@@ -326,9 +327,9 @@ namespace Mistaken.DevTools.Commands
                         obj.transform.localPosition = offset;
                         obj.transform.localScale = new Vector3(float.Parse(args[5]), float.Parse(args[6]), float.Parse(args[7]));
                         obj.NetworkMaterialColor = color;
-                        if (!this.primitiveObjectsList.ContainsKey(player))
-                            this.primitiveObjectsList.Add(player, new List<PrimitiveObjectToy>());
-                        this.primitiveObjectsList[player].Add(obj);
+                        if (!PrimitiveObjectsList.ContainsKey(player))
+                            PrimitiveObjectsList.Add(player, new List<PrimitiveObjectToy>());
+                        PrimitiveObjectsList[player].Add(obj);
 
                         return new string[] { $"Spawned cube at {obj.transform.position} with color {color}. Use \".test spawn2 remove\" to remove last spawned object." };
                     }
@@ -373,11 +374,11 @@ namespace Mistaken.DevTools.Commands
                             var rematt = RealPlayers.Get(args[2]);
                             if (rematt is null)
                                 rematt = player;
-                            if (this.playerAttachedObjects[rematt].Count != 0)
+                            if (PlayerAttachedObjects[rematt].Count != 0)
                             {
-                                NetworkServer.Destroy(this.playerAttachedObjects[rematt].Last().gameObject);
-                                this.playerAttachedObjects[rematt].Remove(this.playerAttachedObjects[rematt].Last());
-                                foreach (var primObj in this.absolutePrimitiveObjectsList[rematt])
+                                NetworkServer.Destroy(PlayerAttachedObjects[rematt].Last().gameObject);
+                                PlayerAttachedObjects[rematt].Remove(PlayerAttachedObjects[rematt].Last());
+                                foreach (var primObj in AbsolutePrimitiveObjectsList[rematt])
                                     player.SendConsoleMessage($"{primObj.netId}", "gray");
 
                                 return new string[] { "Object removed successfully!" };
@@ -405,9 +406,9 @@ namespace Mistaken.DevTools.Commands
                         obj.transform.localScale = new Vector3(float.Parse(args[10]), float.Parse(args[11]), float.Parse(args[12])) * -1f;
                         obj.NetworkMaterialColor = color;
                         obj.transform.parent = player.GameObject.transform;
-                        if (!this.playerAttachedObjects.ContainsKey(player))
-                            this.playerAttachedObjects.Add(player, new List<PrimitiveObjectToy>());
-                        this.playerAttachedObjects[player].Add(obj);
+                        if (!PlayerAttachedObjects.ContainsKey(player))
+                            PlayerAttachedObjects.Add(player, new List<PrimitiveObjectToy>());
+                        PlayerAttachedObjects[player].Add(obj);
 
                         return new string[] { $"Attached {type} to {player.Nickname} with offset {pos} and color {color}. Use \".test attp remove [player id]\" to remove last attached object." };
                     }
@@ -458,6 +459,32 @@ namespace Mistaken.DevTools.Commands
                 case "perms":
                     return Exiled.Permissions.Extensions.Permissions.Groups.Select(x => string.Join("\n", x.Value.Permissions.Select(perm => $"{x.Key}: {perm}"))).ToArray();
 
+                case "inrangevis":
+                    {
+                        if (InRangeVisualisation)
+                        {
+                            foreach (var obj in InRangeVisualisationObjects)
+                            {
+                                NetworkServer.Destroy(obj.gameObject);
+                            }
+                        }
+                        else
+                        {
+                            foreach (var obj in UnityEngine.Object.FindObjectsOfType<InRange>())
+                            {
+                                var size = obj.GetComponent<BoxCollider>().size;
+                                var primitive = MapPlus.SpawnPrimitive(PrimitiveType.Cube, obj.transform, Color.blue, true);
+                                primitive.transform.localPosition = Vector3.zero;
+                                primitive.transform.localRotation = Quaternion.identity;
+                                primitive.transform.localScale = size;
+                                InRangeVisualisationObjects.Add(primitive);
+                            }
+                        }
+
+                        InRangeVisualisation = !InRangeVisualisation;
+                        return new string[] { $"Toggled visualisation of InRange Colliders to {InRangeVisualisation}" };
+                    }
+
                 case "my_perms":
                     return Exiled.Permissions.Extensions.Permissions.Groups.Where(x => x.Key == player.GroupName).First().Value.CombinedPermissions.ToArray();
                 case "my_perms2":
@@ -476,11 +503,15 @@ namespace Mistaken.DevTools.Commands
             return new string[] { "HMM" };
         }
 
-        private readonly Dictionary<Player, PrimitiveObjectToy> primitiveObjects = new Dictionary<Player, PrimitiveObjectToy>();
-        private readonly Dictionary<Player, LightSourceToy> lightSources = new Dictionary<Player, LightSourceToy>();
-        private readonly Dictionary<Player, List<PrimitiveObjectToy>> absolutePrimitiveObjectsList = new Dictionary<Player, List<PrimitiveObjectToy>>();
-        private readonly Dictionary<Player, List<PrimitiveObjectToy>> primitiveObjectsList = new Dictionary<Player, List<PrimitiveObjectToy>>();
-        private readonly Dictionary<Player, List<PrimitiveObjectToy>> playerAttachedObjects = new Dictionary<Player, List<PrimitiveObjectToy>>();
+        internal static readonly Dictionary<Player, PrimitiveObjectToy> PrimitiveObjects = new Dictionary<Player, PrimitiveObjectToy>();
+        internal static readonly Dictionary<Player, LightSourceToy> LightSources = new Dictionary<Player, LightSourceToy>();
+        internal static readonly Dictionary<Player, List<PrimitiveObjectToy>> AbsolutePrimitiveObjectsList = new Dictionary<Player, List<PrimitiveObjectToy>>();
+        internal static readonly Dictionary<Player, List<PrimitiveObjectToy>> PrimitiveObjectsList = new Dictionary<Player, List<PrimitiveObjectToy>>();
+        internal static readonly Dictionary<Player, List<PrimitiveObjectToy>> PlayerAttachedObjects = new Dictionary<Player, List<PrimitiveObjectToy>>();
+        internal static readonly HashSet<PrimitiveObjectToy> InRangeVisualisationObjects = new HashSet<PrimitiveObjectToy>();
+
+        internal static bool InRangeVisualisation { get; set; } = false;
+
         private DoorVariant door;
     }
 }
