@@ -11,11 +11,9 @@ using AdminToys;
 using CommandSystem;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
-using Exiled.API.Features.Items;
 using Exiled.CustomRoles.API.Features;
 using Interactables.Interobjects;
 using Interactables.Interobjects.DoorUtils;
-using InventorySystem.Items.Firearms.Attachments;
 using Mirror;
 using Mistaken.API;
 using Mistaken.API.Commands;
@@ -69,7 +67,7 @@ namespace Mistaken.DevTools.Commands
                                 room = player.CurrentRoom;
                                 pos = room.Position;
                                 var offset = new Vector3(float.Parse(args[2]), float.Parse(args[3]), float.Parse(args[4]));
-                                offset = (room.transform.forward * -offset.x) + (room.transform.right * -offset.z) + (Vector3.up * offset.y);
+                                offset = (room.transform.right * -offset.x) + (room.transform.forward * -offset.z) + (Vector3.up * offset.y);
                                 pos += offset;
                                 rot = Quaternion.Euler(room.transform.eulerAngles + new Vector3(float.Parse(args[5]), float.Parse(args[6]), float.Parse(args[7])));
                                 scale = new Vector3(float.Parse(args[8]), float.Parse(args[9]), float.Parse(args[10]));
@@ -241,7 +239,7 @@ namespace Mistaken.DevTools.Commands
 
                         var pos = player.CurrentRoom.Position;
                         var offset = new Vector3(float.Parse(args[3]), float.Parse(args[4]), float.Parse(args[5]));
-                        offset = (player.CurrentRoom.transform.forward * -offset.x) + (player.CurrentRoom.transform.right * -offset.z) + (Vector3.up * offset.y);
+                        offset = (player.CurrentRoom.transform.right * -offset.x) + (player.CurrentRoom.transform.forward * -offset.z) + (Vector3.up * offset.y);
                         pos += offset;
 
                         var obj = GlobalHandler.GetPrimitiveObject();
@@ -342,7 +340,7 @@ namespace Mistaken.DevTools.Commands
                         var rot = new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6]));
                         var scale = new Vector3(float.Parse(args[7]), float.Parse(args[8]), float.Parse(args[9]));
                         var basePos = player.CurrentRoom.Position;
-                        pos = (player.CurrentRoom.transform.forward * -pos.x) + (player.CurrentRoom.transform.right * -pos.z) + (Vector3.up * pos.y);
+                        pos = (player.CurrentRoom.transform.right * -pos.x) + (player.CurrentRoom.transform.forward * -pos.z) + (Vector3.up * pos.y);
                         basePos += pos;
                         this.door = UnityEngine.Object.Instantiate(DoorUtils.GetPrefab(DoorUtils.DoorType.LCZ_BREAKABLE), basePos, Quaternion.Euler(player.CurrentRoom.transform.eulerAngles + rot));
                         GameObject.Destroy(this.door.GetComponent<DoorEventOpenerExtension>());
@@ -397,7 +395,7 @@ namespace Mistaken.DevTools.Commands
                             color = Color.gray;
                         var pos = player.Position;
                         var offset = new Vector3(float.Parse(args[4]), float.Parse(args[5]), float.Parse(args[6]));
-                        offset = (player.CurrentRoom.transform.forward * -offset.x) + (player.CurrentRoom.transform.right * -offset.z) + (Vector3.up * offset.y);
+                        offset = (player.CurrentRoom.transform.right * -offset.x) + (player.CurrentRoom.transform.forward * -offset.z) + (Vector3.up * offset.y);
                         pos += offset;
 
                         obj.NetworkPrimitiveType = type;
