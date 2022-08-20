@@ -215,6 +215,26 @@ namespace Mistaken.DevTools.Commands
                                     };
                                 }
 
+                            case "item":
+                                {
+                                    ItemType itemType;
+                                    if (!System.Enum.TryParse(args[12], true, out itemType))
+                                        itemType = ItemType.KeycardO5;
+
+                                    var pickup = Exiled.API.Features.Items.Item.Create(itemType).Spawn(pos);
+                                    pickup.Base.transform.rotation = rot;
+                                    pickup.Scale = scale;
+                                    return new string[]
+                                    {
+                                        $"Spawned item",
+                                        $"Type : {itemType}",
+                                        $"In   : {(room == null ? "Absolute" : room.Type.ToString())}",
+                                        $"Pos  : {pos}",
+                                        $"Rot  : {rot}",
+                                        $"Scale: {scale}",
+                                    };
+                                }
+
                             default:
                                 return new string[] { $"Unknown spawn item ({args[11].ToLower()}):", "- door", "- toy", "- workstation" };
                         }
