@@ -4,6 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -14,6 +15,7 @@ using Exiled.API.Features;
 using Exiled.CustomRoles.API.Features;
 using Interactables.Interobjects;
 using Interactables.Interobjects.DoorUtils;
+using MapGeneration.Distributors;
 using Mirror;
 using Mistaken.API;
 using Mistaken.API.Commands;
@@ -228,6 +230,25 @@ namespace Mistaken.DevTools.Commands
                                     {
                                         $"Spawned item",
                                         $"Type : {itemType}",
+                                        $"In   : {(room == null ? "Absolute" : room.Type.ToString())}",
+                                        $"Pos  : {pos}",
+                                        $"Rot  : {rot}",
+                                        $"Scale: {scale}",
+                                    };
+                                }
+
+                            case "structure":
+                                {
+                                    API.StructureType type;
+                                    if (!System.Enum.TryParse(args[12], true, out type))
+                                        type = API.StructureType.RegularMedkitLocker;
+
+                                    MapPlus.SpawnStructure(type, pos, rot);
+
+                                    return new string[]
+                                    {
+                                        $"Spawned item",
+                                        $"Type : {type}",
                                         $"In   : {(room == null ? "Absolute" : room.Type.ToString())}",
                                         $"Pos  : {pos}",
                                         $"Rot  : {rot}",
