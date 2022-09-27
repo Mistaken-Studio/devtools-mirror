@@ -366,6 +366,7 @@ namespace Mistaken.DevTools.Commands
                         obj.transform.localPosition = offset;
                         obj.transform.localScale = new Vector3(float.Parse(args[5]), float.Parse(args[6]), float.Parse(args[7]));
                         obj.NetworkMaterialColor = color;
+                        obj.UpdatePositionServer();
                         if (!PrimitiveObjectsList.ContainsKey(player))
                             PrimitiveObjectsList.Add(player, new List<PrimitiveObjectToy>());
                         PrimitiveObjectsList[player].Add(obj);
