@@ -484,6 +484,11 @@ namespace Mistaken.DevTools.Commands
                         NetworkServer.Spawn(tmp);
                         return x.name;
                     }).ToArray();
+                case "list2":
+                    return NetworkClient.prefabs.Select(x =>
+                    {
+                        return x.Value.name + ": " + x.Key;
+                    }).ToArray();
                 case "hint":
                     player.ShowHint(string.Join(" ", args.Skip(1)), 20);
                     break;
