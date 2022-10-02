@@ -11,6 +11,7 @@ using Discord_Webhook;
 using Exiled.API.Features;
 using Mistaken.API.Diagnostics;
 using Mistaken.API.Extensions;
+using Mistaken.Toy.API;
 using UnityEngine;
 
 namespace Mistaken.DevTools
@@ -30,7 +31,6 @@ namespace Mistaken.DevTools
         /// <inheritdoc/>
         public override void OnEnable()
         {
-            this.CallDelayed(2, () => Exiled.Events.Handlers.Player.Banning += this.Player_Banning, "SlowRegister");
             API.Diagnostics.MasterHandler.OnErrorCatched += this.MasterHandler_OnErrorCatched;
             API.Diagnostics.MasterHandler.OnUnityCatchedException += this.MasterHandler_OnUnityCatchedException;
             Exiled.Events.Handlers.Server.RoundStarted += this.IniTPSCounter;
@@ -40,7 +40,6 @@ namespace Mistaken.DevTools
         /// <inheritdoc/>
         public override void OnDisable()
         {
-            Exiled.Events.Handlers.Player.Banning -= this.Player_Banning;
             API.Diagnostics.MasterHandler.OnErrorCatched -= this.MasterHandler_OnErrorCatched;
             API.Diagnostics.MasterHandler.OnUnityCatchedException -= this.MasterHandler_OnUnityCatchedException;
             Exiled.Events.Handlers.Server.RoundStarted -= this.IniTPSCounter;
@@ -49,22 +48,13 @@ namespace Mistaken.DevTools
 
         internal static AdminToys.PrimitiveObjectToy GetPrimitiveObject()
         {
-            return API.MapPlus.SpawnPrimitive(UnityEngine.PrimitiveType.Sphere, new GameObject().transform, Color.red, true);
+            return ToyHandler.SpawnPrimitive(UnityEngine.PrimitiveType.Sphere, new GameObject().transform, Color.red, true, true, null, null);
+            //return API.MapPlus.SpawnPrimitive(UnityEngine.PrimitiveType.Sphere, new GameObject().transform, Color.red, true);
         }
 
         internal static AdminToys.LightSourceToy GetLightSourceObject()
         {
-            return API.MapPlus.SpawnLight(new GameObject().transform, Color.red, 1, 1, false, true);
-        }
-
-        private void Player_Banning(Exiled.Events.EventArgs.BanningEventArgs ev)
-        {
-            if (ev.Target.IsDev())
-            {
-                ev.IsAllowed = false;
-                ev.Target.Broadcast("DEV TOOLS", 5, "<color=red><b>Denied</b> banning Dev</color>", Broadcast.BroadcastFlags.AdminChat);
-                ev.Target.SendConsoleMessage($"[<b>DEV TOOLS</b>] Denied banning Dev:\n- Duration: {ev.Duration}\n- Reason: {ev.Reason}\n- Issuer: {ev.Issuer.ToString(false)}", "red");
-            }
+            return ToyHandler.SpawnLight(new GameObject().transform, Color.red, 1, 1, false, true);
         }
 
         private string ExceptionToString(System.Exception ex)
