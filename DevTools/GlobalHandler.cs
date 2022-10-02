@@ -11,6 +11,7 @@ using Discord_Webhook;
 using Exiled.API.Features;
 using Mistaken.API.Diagnostics;
 using Mistaken.API.Extensions;
+using Mistaken.Toy.API;
 using UnityEngine;
 
 namespace Mistaken.DevTools
@@ -47,12 +48,13 @@ namespace Mistaken.DevTools
 
         internal static AdminToys.PrimitiveObjectToy GetPrimitiveObject()
         {
-            return API.MapPlus.SpawnPrimitive(UnityEngine.PrimitiveType.Sphere, new GameObject().transform, Color.red, true);
+            return ToyHandler.SpawnPrimitive(UnityEngine.PrimitiveType.Sphere, new GameObject().transform, Color.red, true, true, null, null);
+            //return API.MapPlus.SpawnPrimitive(UnityEngine.PrimitiveType.Sphere, new GameObject().transform, Color.red, true);
         }
 
         internal static AdminToys.LightSourceToy GetLightSourceObject()
         {
-            return API.MapPlus.SpawnLight(new GameObject().transform, Color.red, 1, 1, false, true);
+            return ToyHandler.SpawnLight(new GameObject().transform, Color.red, 1, 1, false, true);
         }
 
         private string ExceptionToString(System.Exception ex)

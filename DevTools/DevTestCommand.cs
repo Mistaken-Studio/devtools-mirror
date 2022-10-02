@@ -22,6 +22,7 @@ using Mistaken.API.Commands;
 using Mistaken.API.Components;
 using Mistaken.API.Extensions;
 using Mistaken.API.GUI;
+using Mistaken.Toy.API;
 using UnityEngine;
 
 namespace Mistaken.DevTools.Commands
@@ -358,7 +359,7 @@ namespace Mistaken.DevTools.Commands
                         }
 
                         var offset = new Vector3(float.Parse(args[2]), float.Parse(args[3]), float.Parse(args[4]));
-                        var obj = MapPlus.SpawnPrimitive(PrimitiveType.Cube, player.CurrentRoom.Transform, Color.red, true);
+                        var obj = ToyHandler.SpawnPrimitive(PrimitiveType.Cube, player.CurrentRoom.Transform, Color.red, true, true, null, null);
 
                         if (!ColorUtility.TryParseHtmlString(args[1], out var color))
                             color = Color.gray;
@@ -513,7 +514,7 @@ namespace Mistaken.DevTools.Commands
                             foreach (var obj in UnityEngine.Object.FindObjectsOfType<InRange>())
                             {
                                 var size = obj.GetComponent<BoxCollider>().size;
-                                var primitive = MapPlus.SpawnPrimitive(PrimitiveType.Cube, obj.transform, Color.blue, true);
+                                var primitive = ToyHandler.SpawnPrimitive(PrimitiveType.Cube, obj.transform, Color.blue, true, true, null, null);
                                 primitive.transform.localPosition = Vector3.zero;
                                 primitive.transform.localRotation = Quaternion.identity;
                                 primitive.transform.localScale = size;
