@@ -49,7 +49,8 @@ namespace Mistaken.DevTools
         internal static AdminToys.PrimitiveObjectToy GetPrimitiveObject()
         {
             return ToyHandler.SpawnPrimitive(UnityEngine.PrimitiveType.Sphere, new GameObject().transform, Color.red, true, true, null, null);
-            //return API.MapPlus.SpawnPrimitive(UnityEngine.PrimitiveType.Sphere, new GameObject().transform, Color.red, true);
+
+            // return API.MapPlus.SpawnPrimitive(UnityEngine.PrimitiveType.Sphere, new GameObject().transform, Color.red, true);
         }
 
         internal static AdminToys.LightSourceToy GetLightSourceObject()
@@ -81,6 +82,9 @@ namespace Mistaken.DevTools
             if (string.IsNullOrWhiteSpace(PluginHandler.Instance.Config.WebhookLink))
                 return;
 
+            if (message.Contains("HandleData Unknown connectionId:"))
+                return;
+
             this.Send(new Webhook(PluginHandler.Instance.Config.WebhookLink)
                 .AddMessage(msg => msg
                     .WithAvatar(string.IsNullOrWhiteSpace(PluginHandler.Instance.Config.WebhookAvatar) ? null : PluginHandler.Instance.Config.WebhookAvatar)
@@ -90,7 +94,7 @@ namespace Mistaken.DevTools
                             $"[`{Server.Port}`] ",
                             $"[`{DateTime.Now:HH:mm:ss}`] ",
                             $"[`{Round.ElapsedTime.Minutes:00}:{Round.ElapsedTime.Seconds:00}`] ",
-                            $"Uncached Exception"))
+                            $"Uncatched Exception"))
                     .WithEmbed(embed => embed
                         .WithColor(255, 0, 0)
                         .WithDescription($"```{message}\n{stackTrace}```"))));

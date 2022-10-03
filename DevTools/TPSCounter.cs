@@ -17,9 +17,9 @@ namespace Mistaken.DevTools
 {
     internal class TPSCounter : MonoBehaviour
     {
+        private readonly List<(int Ticks, double Second)> lastTPS = new ();
+        private readonly ConcurrentQueue<double> longTicks = new ();
         private int ticks = 0;
-        private List<(int Ticks, double Second)> lastTPS = new List<(int Ticks, double Second)>();
-        private ConcurrentQueue<double> longTicks = new ConcurrentQueue<double>();
 
         private void Start()
         {
@@ -94,11 +94,10 @@ namespace Mistaken.DevTools
 
         private IEnumerator HandleLongTicks()
         {
-            double delta;
             while (true)
             {
                 yield return new WaitForSeconds(1);
-                if (this.longTicks.TryDequeue(out delta))
+                if (this.longTicks.TryDequeue(out double delta))
                 {
                     new Webhook(PluginHandler.Instance.Config.WebhookLink)
                         .AddMessage((msg) =>

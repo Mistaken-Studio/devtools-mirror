@@ -10,25 +10,18 @@ using Exiled.API.Features;
 
 namespace Mistaken.DevTools
 {
-    /// <inheritdoc/>
-    public class PluginHandler : Plugin<Config>
+    internal class PluginHandler : Plugin<Config>
     {
-        /// <inheritdoc/>
         public override string Author => "Mistaken Devs";
 
-        /// <inheritdoc/>
         public override string Name => "DevTools";
 
-        /// <inheritdoc/>
         public override string Prefix => "MDEVTOOLS";
 
-        /// <inheritdoc/>
         public override PluginPriority Priority => PluginPriority.Higher - 1;
 
-        /// <inheritdoc/>
-        public override Version RequiredExiledVersion => new Version(4, 1, 2);
+        public override Version RequiredExiledVersion => new (5, 2, 2);
 
-        /// <inheritdoc/>
         public override void OnEnabled()
         {
             Instance = this;
@@ -45,7 +38,6 @@ namespace Mistaken.DevTools
             base.OnEnabled();
         }
 
-        /// <inheritdoc/>
         public override void OnDisabled()
         {
             API.Diagnostics.Module.OnDisable(this);
