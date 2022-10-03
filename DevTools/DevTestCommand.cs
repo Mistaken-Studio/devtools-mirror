@@ -220,8 +220,7 @@ namespace Mistaken.DevTools.Commands
 
                             case "item":
                                 {
-                                    ItemType itemType;
-                                    if (!System.Enum.TryParse(args[12], true, out itemType))
+                                    if (!System.Enum.TryParse(args[12], true, out ItemType itemType))
                                         itemType = ItemType.KeycardO5;
 
                                     var pickup = Exiled.API.Features.Items.Item.Create(itemType).Spawn(pos);
@@ -240,8 +239,7 @@ namespace Mistaken.DevTools.Commands
 
                             case "structure":
                                 {
-                                    API.StructureType type;
-                                    if (!System.Enum.TryParse(args[12], true, out type))
+                                    if (!System.Enum.TryParse(args[12], true, out API.StructureType type))
                                         type = API.StructureType.RegularMedkitLocker;
 
                                     MapPlus.SpawnStructure(type, pos, rot);
@@ -413,8 +411,7 @@ namespace Mistaken.DevTools.Commands
                         if (args[1].ToLower() == "remove")
                         {
                             var rematt = RealPlayers.Get(args[2]);
-                            if (rematt is null)
-                                rematt = player;
+                            rematt ??= player;
                             if (PlayerAttachedObjects[rematt].Count != 0)
                             {
                                 NetworkServer.Destroy(PlayerAttachedObjects[rematt].Last().gameObject);
@@ -430,8 +427,7 @@ namespace Mistaken.DevTools.Commands
 
                         var obj = GlobalHandler.GetPrimitiveObject();
                         var player2 = RealPlayers.Get(args[1]);
-                        if (player2 is null)
-                            player2 = player;
+                        player2 ??= player;
                         if (!System.Enum.TryParse<PrimitiveType>(args[2], true, out var type))
                             type = PrimitiveType.Sphere;
                         if (!ColorUtility.TryParseHtmlString(args[3], out var color))
@@ -549,12 +545,12 @@ namespace Mistaken.DevTools.Commands
             return new string[] { "HMM" };
         }
 
-        internal static readonly Dictionary<Player, PrimitiveObjectToy> PrimitiveObjects = new Dictionary<Player, PrimitiveObjectToy>();
-        internal static readonly Dictionary<Player, LightSourceToy> LightSources = new Dictionary<Player, LightSourceToy>();
-        internal static readonly Dictionary<Player, List<PrimitiveObjectToy>> AbsolutePrimitiveObjectsList = new Dictionary<Player, List<PrimitiveObjectToy>>();
-        internal static readonly Dictionary<Player, List<PrimitiveObjectToy>> PrimitiveObjectsList = new Dictionary<Player, List<PrimitiveObjectToy>>();
-        internal static readonly Dictionary<Player, List<PrimitiveObjectToy>> PlayerAttachedObjects = new Dictionary<Player, List<PrimitiveObjectToy>>();
-        internal static readonly HashSet<PrimitiveObjectToy> InRangeVisualisationObjects = new HashSet<PrimitiveObjectToy>();
+        internal static readonly Dictionary<Player, PrimitiveObjectToy> PrimitiveObjects = new ();
+        internal static readonly Dictionary<Player, LightSourceToy> LightSources = new ();
+        internal static readonly Dictionary<Player, List<PrimitiveObjectToy>> AbsolutePrimitiveObjectsList = new ();
+        internal static readonly Dictionary<Player, List<PrimitiveObjectToy>> PrimitiveObjectsList = new ();
+        internal static readonly Dictionary<Player, List<PrimitiveObjectToy>> PlayerAttachedObjects = new ();
+        internal static readonly HashSet<PrimitiveObjectToy> InRangeVisualisationObjects = new ();
 
         internal static bool InRangeVisualisation { get; set; } = false;
 
